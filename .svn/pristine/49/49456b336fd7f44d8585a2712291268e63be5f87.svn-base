@@ -1,0 +1,92 @@
+
+#ifndef _CLASS_TREE
+#define _CLASS_TREE
+
+#include "Joint.h"
+#include "MatrixDefs.h"
+
+
+class Tree {
+
+public:
+	Tree();
+	~Tree();
+
+	int GetNumJoint() const { return nJoint; }
+	int GetNumEffector() const { return nEffector; }
+	void InsertRoot(Joint*);
+	void InsertChild(Joint* parent, Joint* child);
+
+	//compute jacobian
+	void ComputeJacobian();
+
+	// Accessors based on node numbers
+	Joint* GetJoint(int) const;
+	Joint* GetEffector(int) const;
+	const matrices::Vector3& GetPosition() const;
+	const float GetBoundaryRadius() const { return sphereRadius_; };
+	const matrices::Vector3& GetEffectorPosition(int) const;
+
+	// Accessors for tree traversal
+	Joint* GetRoot() const { return root; }
+	Joint* GetSuccessor ( const Joint* ) const;
+	Joint* GetParent( const Joint* node ) const { return node->pRealparent_; }
+
+	void Compute();
+	void Init();
+	void ToRest();
+	
+	float ComputeForceManipulability() const;
+	float ComputeVelocityManipulability() const;
+
+	float ComputeForceManipulability(const matrices::Vector3& direction) const;
+	float ComputeVelocityManipulability(const matrices::Vector3& direction ) const;
+
+	void ApproximateForceManipulabilityBruteForce();
+	void ApproximateVelocityManipulabilityBruteForce();
+
+	void OptimizeCurrentConfiguration();
+
+public:
+	matrices::Vector3* directionForce_;
+	matrices::Vector3* directionVel_;
+	matrices::Vector3* target_;
+	matrices::Vector3* position_;
+	Eigen::Matrix3d jacobianProductInverse;
+	Eigen::Matrix3d jacobianProduct;
+	Eigen::MatrixXd jacobian;
+	Eigen::MatrixXd jacobianInverse;
+	Eigen::MatrixXd Identitymin;
+	Eigen::JacobiSVD<Eigen::Matrix3d> svd_;
+	Eigen::JacobiSVD<Eigen::Matrix3d> svdInv_;
+
+private:
+	void OptimizeOneTheta( Joint* /*joint*/,  double delta, bool force = true );
+	void OptimizeCurrentConfigurationStep( const matrices::VectorX& /*ij*/ );
+
+	Joint* root;
+	int nJoint;			// nJoint = nEffector + nJoint
+	int nEffector;
+	void SetSeqNum(Joint*);
+	Joint* SearchJoint(Joint*, int) const;
+	Joint* SearchEffector(Joint*, int) const;
+	void ComputeTree(Joint*);
+	void InitTree(Joint*);
+
+	float sphereRadius_;
+};
+
+inline Joint* Tree::GetSuccessor ( const Joint* node ) const
+{
+	while ( true ) {
+		if ( node->pChild_ ) {
+			return node->pChild_;
+		}
+		node = node->pRealparent_;
+		if ( !node ) {
+			return 0;		// Back to root, finished traversal
+		} 
+	}
+}
+
+#endif //_CLASS_TREE

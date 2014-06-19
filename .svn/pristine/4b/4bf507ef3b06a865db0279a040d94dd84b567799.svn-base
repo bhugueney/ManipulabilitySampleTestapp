@@ -1,0 +1,109 @@
+#include "PostureSolver.h"
+
+#include "World.h"
+#include "ObstacleVisitor_ABC.h"
+#include "Obstacle.h"
+
+#include "kinematic/FilterDistance.h"
+#include "kinematic/SampleGenerator.h"
+#include "kinematic/Sample.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Robot.h"
+
+#include <math.h>
+#include <vector>
+
+using namespace matrices;
+using namespace std;
+
+struct PosturePImpl : public SampleGeneratorVisitor_ABC
+{
+	PosturePImpl(const World& world)
+		: SampleGeneratorVisitor_ABC()
+		, world_(world)
+		, currentBest_(0)
+	{
+		//NOTHING
+	}
+	~PosturePImpl()
+	{
+		//NOTHING
+	}
+
+	virtual void Visit(Sample& sample)
+	{
+		//TODO Manipulability and other constraints here
+		currentBest_ = &sample;
+	}
+	const World& world_;
+	Sample* currentBest_;
+};
+
+struct ReachableObstaclesContainer : public ObstacleVisitor_ABC
+{
+	ReachableObstaclesContainer(const World& world, const Tree& tree, const Robot& robot)
+		: ObstacleVisitor_ABC()
+		, world_(world)
+		, tree_ (tree)
+		, robot_(robot)
+	{
+		// NOTHING
+	}
+
+	~ReachableObstaclesContainer()
+	{
+		// NOTHING
+	}
+
+	virtual void Visit(const Obstacle& obstacle)
+	{
+		if( world_.IsReachable(robot_, tree_, obstacle))
+			obstacles_.push_back(&obstacle);
+	}
+
+	typedef std::vector<const Obstacle*> T_Obstacles;
+	typedef T_Obstacles::const_iterator T_ObstaclesCIT;
+
+	T_Obstacles obstacles_;
+	const World& world_;
+	const Tree&  tree_ ;
+	const Robot& robot_;
+};
+
+
+PostureSolver::PostureSolver(const World& world)
+	: pImpl_(new PosturePImpl(world))
+{
+	//NOTHING
+}
+
+PostureSolver::~PostureSolver()
+{
+	// NOTHING
+}
+
+void PostureSolver::MatchTree( Robot& robot, Tree& tree, const SampleGenerator& sampleGenerator )
+{
+	// Collecting reachable obstacles
+	ReachableObstaclesContainer obstacles(pImpl_->world_, tree, robot);
+	pImpl_->world_.Accept(obstacles);
+	for( ReachableObstaclesContainer::T_ObstaclesCIT it = obstacles.obstacles_.begin(); it!= obstacles.obstacles_.end(); ++it)
+	{
+		FilterDistance filter( 0.2, (*(*it)), robot);
+		sampleGenerator.Request(tree.GetId(), *pImpl_, filter );
+		if(pImpl_->currentBest_)
+		{
+			pImpl_->currentBest_->LoadIntoTree(tree);
+			tree.Compute();
+		}
+	}
+}
+
+Robot* PostureSolver::CreatePosture(const Robot& robot, const SampleGenerator& sampleGenerator)
+{
+	Robot* res = robot.Clone();
+	// TODO find appropriately wich tree to move
+	Tree* tree = res->GetTree(0);
+	MatchTree( *res, *tree, sampleGenerator );
+	return res;
+}

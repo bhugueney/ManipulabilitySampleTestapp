@@ -1,0 +1,19 @@
+#include "PostureCriteriaToeOnCOM.h"
+#include "World.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Robot.h"
+
+PostureCriteriaToeOnCOM::PostureCriteriaToeOnCOM()
+{
+	// NOTHING
+}
+
+PostureCriteriaToeOnCOM::~PostureCriteriaToeOnCOM()
+{
+	// NOTHING
+}
+
+bool PostureCriteriaToeOnCOM::Evaluate(const World& world, const Robot& robot, const Tree& tree) const
+{
+	return false; // TODO
+}

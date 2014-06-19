@@ -1,0 +1,143 @@
+
+#include "SampleGenerator.h"
+#include "SampleGeneratorVisitor_ABC.h"
+#include "kinematic/Sample.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Robot.h"
+#include "kinematic/Joint.h"
+#include "Pi.h"
+#include "Filter_ABC.h"
+
+#include <vector>
+#include "time.h"
+
+using namespace matrices;
+
+// quad-tree related stuff
+#include "Rennes1\SpatialDataStructure\RegularTree.h"
+#include "Rennes1\SpatialDataStructure\Selectors\Triangle3D.h"
+
+#include <Rennes1/Math/Vector3.h>
+
+#include <iostream>
+
+using namespace Rennes1;
+using namespace Rennes1::Math;
+using namespace Rennes1::SpatialDataStructure;
+using namespace Rennes1::SpatialDataStructure::Selectors;
+
+namespace tree
+{
+	typedef Rennes1::Math::Vector3<double> Vector3f;
+	typedef RegularTree<double, 3> RTree3f;
+	typedef Triangle3D<double>	  Triangle3Df;
+
+	typedef Ext::std::vector< RegularTreeBase::EntityId > T_Id;
+	typedef T_Id::const_iterator						  CIT_Id;
+	typedef std::map<RegularTreeBase::EntityId, Vector3f> T_IdMatches;
+
+	const Vector3f minVals(0,0,0) ;
+	const Vector3f maxVals(50,50,50);
+	const int pointsPerNodes = 10;
+}
+
+
+void GenerateJointAngle(Joint* joint)
+{
+	int minTheta, maxTheta;
+
+	minTheta = (int)(joint->GetMinTheta()*RadiansToDegrees);
+	maxTheta = (int)(joint->GetMaxTheta()*RadiansToDegrees);
+
+	joint->SetTheta((rand() % (maxTheta-minTheta + 1) + minTheta) * DegreesToRadians);
+}
+
+struct PImpl
+{
+	PImpl()
+		:tree_(tree::minVals, tree::maxVals, tree::pointsPerNodes)
+	{
+		// NOTHING
+	}
+
+	~PImpl()
+	{
+		// NOTHING
+	}
+	
+	typedef std::vector<Sample> LSamples;
+	typedef std::vector<LSamples> LLSamples;
+	typedef LSamples::const_iterator CITLSamples;
+	typedef LSamples::iterator ITLSamples;
+
+	void GenerateSample(LSamples& samples, Tree& tree)
+	{
+		Joint* j = tree.GetRoot();
+		while(j)
+		{
+			GenerateJointAngle(j);
+			j = j->pChild_;
+		}
+		tree.Compute();tree.ComputeJacobian();
+		samples.push_back(Sample(tree));
+	}
+	LLSamples allSamples_;
+	tree::RTree3f tree_;
+};
+
+SampleGenerator *SampleGenerator::instance = 0;
+
+SampleGenerator::SampleGenerator()
+	: pImpl_(new PImpl)
+{
+	srand((unsigned int)(time(0))); //Init Random generation
+}
+
+SampleGenerator::~SampleGenerator()
+{
+	// NOTHING
+}
+
+void SampleGenerator::GenerateSamples(Tree& tree, int nbSamples)
+{
+	assert(nbSamples > 0);
+	PImpl::LSamples samples;
+	Tree::TREE_ID id = tree.GetTemplateId();
+	if(pImpl_->allSamples_.size() == id) // TODO this sucks, entries have to be created in sequential order
+	{
+		pImpl_->allSamples_.push_back(samples);
+		Sample init(tree);
+		//pImpl_->Reset();
+		for(int i = 0; i < nbSamples; ++i)
+		{
+			pImpl_->GenerateSample(pImpl_->allSamples_[id], tree);
+		}
+		init.LoadIntoTree(tree);
+		}
+}
+
+void SampleGenerator::GenerateSamples(Robot& robot, int nbSamples)
+{
+	for(unsigned int i = 0; i < robot.GetNumTrees(); ++i)
+	{
+		GenerateSamples(*(robot.GetTree(i)), nbSamples);
+	}
+}
+void SampleGenerator::Request(const Robot& robot, Tree& tree, SampleGeneratorVisitor_ABC& visitor, const Filter_ABC& filter) const
+{
+	for(PImpl::ITLSamples it = pImpl_->allSamples_[tree.GetTemplateId()].begin(); it != pImpl_->allSamples_[tree.GetTemplateId()].end(); ++it)
+	{
+		if(filter.ApplyFilter(*it))
+			visitor.Visit(robot, tree, *it);
+	}
+}
+
+
+void SampleGenerator::Request(const Robot& robot, Tree& tree, SampleGeneratorVisitor_ABC& visitor) const
+{
+	for(PImpl::ITLSamples it = pImpl_->allSamples_[tree.GetTemplateId()].begin(); it != pImpl_->allSamples_[tree.GetTemplateId()].end(); ++it)
+	{
+			visitor.Visit(robot, tree, *it);
+	}
+}
+

@@ -1,0 +1,96 @@
+
+#ifndef _CLASS_DRAWMANAGER
+#define _CLASS_DRAWMANAGER
+
+#include "ManipManager.h"
+
+#include "DrawPostures.h"
+#include "DrawWorld.h"
+
+namespace manip_core
+{
+	struct PostureManagerI;
+	struct RobotI;
+}
+
+
+#if PROFILE
+	#include "TimerHandler.h"
+	#include <string> // The drawing library for ODE;
+	#include <iostream> // The drawing library for ODE;
+	#define MAXSAMPLES 100
+	struct FPS : public TimerHandled_ABC
+	{
+
+	/* need to zero out the ticklist array before starting */
+	/* average will ramp up until the buffer is full */
+	/* returns average ticks per frame over the MAXSAMPPLES last frames */
+	FPS()
+		: tickindex(0), ticksum(0), fps_(0), previousTime(0)
+	{
+		// NOTHING
+		for(int i=0; i<MAXSAMPLES; ++i)
+		{
+			ticklist[i] = 0;
+		}
+		//Simulation::GetInstance()->timerHandler_.Register(this);
+	}
+
+	~FPS()
+	{
+		// NOTHING
+	}
+
+	virtual void Update(const Timer::t_time time, const Timer::t_time dt)
+	{
+		ticksum-=ticklist[tickindex];  /* subtract value falling off */
+		ticksum+=dt;              /* add new value */
+		ticklist[tickindex]=dt;   /* save new value so it can be subtracted later */
+		if(++tickindex==MAXSAMPLES)    /* inc buffer index */
+			tickindex=0;
+
+		/* return average */
+		fps_ = 1 /(ticksum/MAXSAMPLES);
+		//fps_ = dt;
+	}
+
+	void Draw()
+	{
+		std::cout << "FPS " << fps_ << std::endl;
+	}
+	double fps_;
+	Timer::t_time previousTime;
+	int tickindex;
+	Timer::t_time ticksum;
+	Timer::t_time ticklist[MAXSAMPLES];
+	};
+#endif //PROFILE
+
+class DrawManager{
+
+public:
+	 DrawManager(manip_core::ManipManager& /*manager*/);
+	~DrawManager();
+
+	 void Draw() const;
+	 void Clear();
+
+	 void SetTransparencyForAll(bool /*on*/);
+
+	 const manip_core::RobotI* NextPosture();
+	 const manip_core::RobotI* PreviousPosture();
+
+	 void drawPostures(bool /*enablePostures*/);
+
+private:
+	DrawPostures drawPostures_;
+	DrawWorld drawWorld_;
+	bool drawShadowPostures_;
+	bool transparencyOn_;
+#if PROFILE
+public:
+	FPS* fps_;
+#endif //PROFILE
+}; // class DrawWorld
+
+#endif //_CLASS_DRAWMANAGER

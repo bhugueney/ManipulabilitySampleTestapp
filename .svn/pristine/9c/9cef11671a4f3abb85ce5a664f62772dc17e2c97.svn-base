@@ -1,0 +1,43 @@
+
+#include "IKSolver.h"
+#include "Tree.h"
+
+#include <iostream>
+
+using namespace matrices;
+using namespace Eigen;
+
+IKSolver::IKSolver( const float stepSize, const float treshold )
+: stepSize_(stepSize)
+, treshold_(treshold)
+{
+	// NOTHING
+}
+
+IKSolver::~IKSolver()
+{
+	// NOTHING
+}
+
+bool IKSolver::Step( Tree& tree, const Vector3& target ) // game programming gems 4 2.6
+{
+	std::cout << " DAFUQ " << std::endl << target << std::endl;
+
+	Vector3 force = tree.GetEffectorPosition(tree.GetNumEffector()-1) - target; //TODO we only have one effector  so weird huh ?
+	std::cout << " DAFUQ " << std::endl << force << std::endl;
+	if( force.norm() < treshold_) // reached treshold
+	{
+		return true;
+	}
+	//q' = tr(J) * force
+
+	//VectorXd qVel = (tree.jacobian.transpose() * force);// *stepSize_;
+	VectorXd qVel = (tree.jacobianInverse * force);// *stepSize_;
+
+	for( int i = 1; i <= qVel.rows(); ++i ) // starting at 1 %*ù$ù
+	{
+		tree.GetJoint(i)->AddToTheta(-qVel(i-1));
+	}
+	
+	return false;
+}

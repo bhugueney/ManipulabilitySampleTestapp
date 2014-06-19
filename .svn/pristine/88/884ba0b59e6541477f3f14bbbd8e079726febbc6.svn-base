@@ -1,0 +1,14 @@
+<world>
+	<robot type="6" samples="1000" x="7" y="12" z="-2" rotx="0" roty="0" rotz="0" iDirx="1" iDiry="0" iDirz="0"  gait="false" autorotate="false" 
+	autorotateleg="false" jumptotarget="false" drawsplines="false" drawnormals="false" reachcom="false" humanrotate="false" rotatewithspline="true" speed = "0.1"/>
+  <rootTrajectory>
+	<waypoint x="7" y="12" z="-2" t="0"/>
+	<waypoint x="9" y="12" z="-2" t="0"/>
+	<waypoint x="12" y="12" z="-1" t="0"/>
+	<waypoint x="15" y="12" z="0" t="1"/>
+  </rootTrajectory>
+  <camera x="7" y="22" z="0" rotx="-90" roty="-10" rotz="0"  type="follow"/>
+  <obj name="../world/skatepark.obj"/>
+  <obstacles>
+  </obstacles>
+</world>

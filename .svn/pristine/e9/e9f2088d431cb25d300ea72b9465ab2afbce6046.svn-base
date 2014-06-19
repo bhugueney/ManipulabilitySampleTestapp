@@ -1,0 +1,103 @@
+
+
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+#include "MatrixDefs.h"
+#include "Pi.h"
+
+#include "Simulation.h"
+
+namespace matrices
+{
+	const Vector3 unitx = Vector3(1, 0, 0);
+	const Vector3 unity = Vector3(0, 1, 0);
+	const Vector3 unitz = Vector3(0, 0, 1);
+	const Vector3 zero  = Vector3(0, 0, 0);
+}
+
+using namespace matrices;
+using namespace Eigen;
+using namespace std;
+using namespace manip_core;
+
+bool takeInput = true;
+
+Simulation* sim;
+
+void PosePrise(const matrices::Vector3& p)
+{
+	Vector3 p1(p(0), p(1)+0.1, p(2)+0.1);
+	Vector3 p2(p(0), p(1)-0.2, p(2)-0.2);
+	sim->manager_.GenerateVerticalChess(p1, p2, 0);
+}
+
+void BuildWorld()
+{
+	// FORWARD OBSTACLES
+	Vector3 p1(-7.5,6,3.f);
+	Vector3 p2(10,6,3.f);
+	Vector3 p3(10,-2,3.f);
+	Vector3 p4(-7.5,-2,3.f);
+
+	sim->manager_.AddObstacle(p1,p2,p3,p4);
+
+	p1 = Vector3(50,200,10);
+	p2 = Vector3(50,-200,10.f);
+	p3 = Vector3(50,-200,0.f);
+	p4 = Vector3(50,200,0.f);
+
+	sim->manager_.SetNextColor(1,0.,0);
+
+	PosePrise( Vector3( -7.f, 0 , 4));
+	PosePrise( Vector3( -7.1f, 0. , 3.8));
+	PosePrise( Vector3( -7.1f, 0.5, 3.5));
+	PosePrise( Vector3( -7.1f, -0.5, 3.5));
+	sim->manager_.Initialize(false);
+}
+
+void command(int cmd)   /**  key control function; */
+{
+	const Vector3 trX(0.03, 0, 0);
+	const Vector3 trY(0,0.01,  0);
+	const Vector3 trZ(0,0.0,  0.03);
+	const Vector3 myZ(0.3, 0.0,  0.07);
+	switch (cmd)
+	{	
+		case '+' :
+			sim->motionHandler_.Translate(matrices::unitz);
+		break;
+		case '-' :
+			sim->motionHandler_.Translate(matrices::unitz);
+		break;
+		case 'a' :
+			//Rotate(pRobot, matrices::Roty3(-0.1));
+			//postureManager->NextPosture(pRobot,matrices::unity);
+			////drawManager.PreviousPosture();
+			sim->Reset();
+		break;
+	}
+}
+
+
+int main(int argc, char *argv[])
+{
+	//glutInit(&argc, argv);
+//	/glutMouseFunc(input::MouseFunc);
+
+	//init robot
+	Matrix4 robotBasis(MatrixX::Identity(4,4));
+	robotBasis(0,3) = -8;
+	robotBasis(1,3) = 1.;
+	robotBasis(2,3) = 3.;
+	sim = Simulation::GetInstance();
+
+	sim->simpParams_.buildWorld = &BuildWorld;
+	sim->simpParams_.robotBasis_ = robotBasis;
+	sim->simpParams_.command = &command;
+	sim->Start(argc, argv);
+    return 0;
+}

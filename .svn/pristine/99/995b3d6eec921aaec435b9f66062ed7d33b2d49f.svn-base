@@ -1,0 +1,103 @@
+
+#include "TreeFactory.h"
+#include "RobotFactory.h"
+#include "Robot.h"
+#include "Tree.h"
+
+#include <vector>
+
+using namespace matrices;
+
+namespace factories
+{
+const Vector3 unitx(1, 0, 0);
+const Vector3 unity(0, 1, 0);
+const Vector3 unitz(0, 0, 1);
+const Vector3 unit1(sqrt(14.0)/8.0, 1.0/8.0, 7.0/8.0);
+const Vector3 zero(0,0,0);
+
+struct RobotFactoryPimpl{
+	RobotFactoryPimpl()
+	{
+		// NOTHING
+	}
+	
+	~RobotFactoryPimpl()
+	{
+		// NOTHING
+	}
+
+	// TODO Joint that do not move
+
+	Robot* CreateHuman(const Matrix4& robotBasis) const
+	{
+		Robot* res = new Robot(robotBasis);
+		factories::TreeFactory factory;
+		Tree* rightArm = factory.CreateTree( factories::Arm, Vector3(0.0, 0.0, 2.7), 0);
+		Tree* leftArm  = factory.CreateTree( factories::Arm, Vector3(0.0, 1.5, 2.7), 1);
+		Tree* rightLeg = factory.CreateTree( factories::Leg, Vector3(0.0, 0.5, 1.7), 2);
+		Tree* leftLeg  = factory.CreateTree( factories::Leg, Vector3(0.0, 1. , 1.7), 3);
+		res->AddTree(leftArm);
+		res->AddTree(rightArm);
+		res->AddTree(leftLeg);
+		res->AddTree(rightLeg);
+		rightLeg->LockTarget(rightLeg->GetTarget());
+
+		Tree* torso  = factory.CreateTree( factories::HumanTorso, Vector3(0.0, 0.75, 1.7), 3);
+		res->AddTorsoAndHead(torso);
+		return res;
+	}
+
+	Robot* CreateQuadruped(const Matrix4& robotBasis) const
+	{
+		// TODO
+		Robot* res = new Robot(robotBasis);
+		factories::TreeFactory factory;
+		Tree* rightArm = factory.CreateTree( factories::Arm, Vector3(0.0, 0.0, 2.7), 0);
+		Tree* leftArm  = factory.CreateTree( factories::Arm, Vector3(0.0, 1.5, 2.7), 1);
+		Tree* rightLeg = factory.CreateTree( factories::Leg, Vector3(0.0, 0.5, 1.7), 2);
+		Tree* leftLeg  = factory.CreateTree( factories::Leg, Vector3(0.0, 1. , 1.7), 3);
+		res->AddTree(leftArm);
+		res->AddTree(rightArm);
+		res->AddTree(leftLeg);
+		res->AddTree(rightLeg);
+		rightLeg->LockTarget(rightLeg->GetTarget());
+		return res;
+	}
+
+	TreeFactory treeFact_;
+};
+}
+
+using namespace factories;
+
+RobotFactory::RobotFactory()
+	: pImpl_(new RobotFactoryPimpl())
+{
+	// NOTHING
+}
+
+
+RobotFactory::~RobotFactory()
+{
+	// NOTHING
+}
+
+Robot* RobotFactory::CreateRobot(const eRobots robots, const Matrix4& robotBasis) const
+{
+	switch (robots)
+		{
+			case Human:
+				{
+					return pImpl_->CreateHuman(robotBasis);
+				}
+			case Quadruped:
+				{
+					return pImpl_->CreateQuadruped(robotBasis);
+				}
+			default:
+				throw(std::exception("unknown robot type"));
+		}
+}
+
+

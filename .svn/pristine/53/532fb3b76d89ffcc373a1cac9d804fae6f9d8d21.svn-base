@@ -1,0 +1,11 @@
+<world>
+  <robot type="0" samples="10000" x="0" y="-2.3" z="1.2" rotx="0" roty="0" rotz="0" iDirx="0" iDiry="0" iDirz="1" 
+  autorotate="false" autorotateleg="false" jumptotarget="true" drawsplines="false" drawnormals="false" reachcom="false" reachcomrotate="false" humanrotate="false"  rotatewithspline="false" rotatewithsplinedir="false" speed = "0.5">
+  
+  </robot>
+  <camera x="0" y="-8" z="2.5" rotx="90" roty="-10" rotz="0"/>
+  <light x="-1" y="-1" shadows="false"/>
+  <obj name="../world/carside.obj"/>
+  <obstacles>
+  </obstacles>
+</world>

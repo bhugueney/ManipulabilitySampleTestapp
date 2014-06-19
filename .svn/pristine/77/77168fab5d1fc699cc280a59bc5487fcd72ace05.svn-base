@@ -1,0 +1,67 @@
+#include "WorldManagerI.h"
+#include "posture/PostureManagerImpl.h"
+
+#include "world/World.h"
+#include "world/Obstacle.h"
+#include "kinematic/RobotFactory.h"
+
+#include "MatrixDefs.h"
+
+using namespace manip_core;
+using namespace matrices;
+
+class WorldManagerImpl : public WorldManagerI
+{
+public :
+
+	WorldManagerImpl()
+	{
+		// NOTHING
+	}
+	~WorldManagerImpl()
+	{
+		// NOTHING
+	}
+
+public:
+
+	virtual void Release()
+	{
+		delete this;
+	}
+
+	virtual void AddObstacle(double* upLeft, double* upRight, double* downRight, double* downLeft)
+	{
+		Vector3 p1, p2, p3, p4;
+		arrayToVect3(upLeft, p1);arrayToVect3(upRight, p2);arrayToVect3(downRight, p3);arrayToVect3(downLeft, p4);
+		world_.AddObstacle(new Obstacle(p1, p2, p3, p4));
+	}
+
+	virtual RobotI* CreateRobot(enums::robot::eRobots robotType, double* transform)
+	{
+		Matrix4 robotCoord;
+		array16ToMatrix4(transform, robotCoord);
+		return factory_.CreateRobot(robotType, robotCoord);
+	}
+	/** Once all obstacles have been created, instantiate world.
+	*/
+	virtual void Initialize(bool activateCollisions)
+	{
+		world_.Instantiate(activateCollisions);		
+	}
+
+	virtual PostureManagerI* GetPostureManager()
+	{
+		return new PostureManagerImpl(world_);
+	}
+
+private:
+	World world_;
+	factories::RobotFactory factory_;
+};
+
+extern "C" MANIPCORE_API WorldManagerI* GetWorldManager()
+{
+	return new WorldManagerImpl;
+}
+

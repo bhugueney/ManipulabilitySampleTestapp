@@ -1,0 +1,17 @@
+
+#ifndef _CLASS_POSTURESCORERI
+#define _CLASS_POSTURESCORERI
+
+#include "Exports.h"
+#include "RobotI.h"
+#include <vector>
+
+namespace manip_core
+{
+struct MANIPCORE_API PostureScorerI
+{
+	virtual float operator()(const std::vector<RobotI*>& /*postures*/) const = 0;
+	virtual float operator()(const std::vector<bool>& /*state*/) const = 0;
+};
+}
+#endif //_CLASS_POSTURESCORERI

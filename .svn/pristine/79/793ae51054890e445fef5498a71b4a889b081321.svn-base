@@ -1,0 +1,16 @@
+
+#ifndef _CLASS_COM_VISITOR_ABC
+#define _CLASS_COM_VISITOR_ABC
+
+#include "MatrixDefs.h"
+
+class ComVisitor_ABC {
+public:
+	 ComVisitor_ABC();
+	 ~ComVisitor_ABC();
+
+	virtual void VisitCom(const matrices::Vector3& /*position*/, const float& /*weight*/) = 0;
+
+}; // ComVisitor_ABC
+
+#endif //_CLASS_COM_VISITOR_ABC

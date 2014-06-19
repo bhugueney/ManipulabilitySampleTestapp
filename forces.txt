@@ -1,0 +1,6 @@
+
+normale =
+
+mg * cos alpha
+
+http://bv.alloprof.qc.ca/physique/la-dynamique/les-forces/la-force-de-frottement-et-la-force-normale.aspx

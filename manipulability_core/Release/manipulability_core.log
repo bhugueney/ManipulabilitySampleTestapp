@@ -1,0 +1,61 @@
+﻿Build started 17/06/2014 4:18:41 PM.
+     1>Project "C:\Projects\mp2\manipulability_app\manipulability_core\manipulability_core.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\link.exe /ERRORREPORT:PROMPT /OUT:"C:\Projects\mp2\manipulability_app\build\Release\manipulability_core.dll" /INCREMENTAL:NO /NOLOGO /LIBPATH:"C:\Program Files (x86)\PCL\lib" /LIBPATH:C:\Projects\mp2\manipulability_app\lib\vc100 glui32.lib ozcollide.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib pcl_octree_debug.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /MANIFEST /MANIFESTUAC:"level='asInvoker' uiAccess='false'" /manifest:embed /DEBUG /PDB:"C:\Projects\mp2\manipulability_app\build\Release\manipulability_core.pdb" /SUBSYSTEM:WINDOWS /OPT:REF /OPT:ICF /LTCG /TLBID:1 /DYNAMICBASE /NXCOMPAT /IMPLIB:"C:\Projects\mp2\manipulability_app\build\Release\manipulability_core.lib" /MACHINE:X86 /SAFESEH /DLL Release\IKSolverI.obj
+         Release\WorldManagerI.obj
+         Release\BVHExporter.obj
+         Release\FilterDistance.obj
+         Release\FilterDistanceObstacle.obj
+         Release\Filter_ABC.obj
+         Release\ForceManipulabilityConstraint.obj
+         Release\IkConstraintHandler.obj
+         Release\IKSolver.obj
+         Release\JointConstraint.obj
+         Release\ObstacleConstraint.obj
+         Release\PartialDerivativeConstraint.obj
+         Release\PostureConstraint.obj
+         Release\Com.obj
+         Release\ComVisitor_ABC.obj
+         Release\Jacobian.obj
+         Release\Joint.obj
+         Release\Robot.obj
+         Release\RobotFactory.obj
+         Release\RobotVisitor_ABC.obj
+         Release\SupportPolygon.obj
+         Release\SupportPolygonVisitor_ABC.obj
+         Release\Tree.obj
+         Release\TreeFactory.obj
+         Release\PostureCriteriaToeOffBoundary.obj
+         Release\PostureCriteriaToeOffGait.obj
+         Release\PostureCriteriaToeOffJointLimit.obj
+         Release\PostureCriteriaToeOnCOM.obj
+         Release\PostureCriteriaToeOnGait.obj
+         Release\PostureCriteria_ABC.obj
+         Release\PostureManagerImpl.obj
+         Release\PostureSolver.obj
+         Release\SpiderGait.obj
+         Release\Trajectory.obj
+         Release\Octree.obj
+         Release\Sample.obj
+         Release\SampleGenerator.obj
+         Release\SampleGeneratorVisitor_ABC.obj
+         Release\TrajectoryHandler.obj
+         Release\CollisionHandlerColdet.obj
+         Release\CollisionHandlerDefault.obj
+         Release\CollisionHandlerOzCollide.obj
+         Release\CollisionHandler_ABC.obj
+         Release\Intersection.obj
+         Release\Obstacle.obj
+         Release\ObstacleVisitor_ABC.obj
+         Release\World.obj
+         Release\MatrixDefs.obj
+         Release\Timer.obj
+            Creating library C:\Projects\mp2\manipulability_app\build\Release\manipulability_core.lib and object C:\Projects\mp2\manipulability_app\build\Release\manipulability_core.exp
+     1>TrajectoryHandler.obj : error LNK2001: unresolved external symbol _MSK_deleteenv@4
+     1>TrajectoryHandler.obj : error LNK2001: unresolved external symbol _MSK_makeenv@8
+     1>C:\Projects\mp2\manipulability_app\build\Release\manipulability_core.dll : fatal error LNK1120: 2 unresolved externals
+     1>Done Building Project "C:\Projects\mp2\manipulability_app\manipulability_core\manipulability_core.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:01.93

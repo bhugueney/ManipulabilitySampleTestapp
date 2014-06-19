@@ -1,0 +1,15 @@
+<world>
+  <robot type="0" x="-17" y="13" z="1.4" rotx="0" roty="0" rotz="0" autorotate="false" autorotateleg="false" jumptotarget="false" drawsplines="true" drawnormals="false" reachcom="true">
+  </robot>
+  <rootTrajectory>
+	<waypoint x="-17" y="13" z="1.4" t="0"/>
+	<waypoint x="-16" y="13" z="2.4" t="1"/>
+	<waypoint x="-14.5" y="13" z="2.4" t="2"/>
+	<waypoint x="-14" y="13" z="5.4" t="3"/>
+	<waypoint x="-10" y="13" z="5.4" t="4"/>
+  </rootTrajectory>
+  <camera x="-20" y="12" z="5" rotx="-0" roty="-10" rotz="0"/>
+  <obj name="../world/race.obj"/>
+  <obstacles>
+  </obstacles>
+</world>

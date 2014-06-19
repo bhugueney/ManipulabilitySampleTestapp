@@ -1,0 +1,55 @@
+
+#ifndef _CLASS_WORLDPARSER
+#define _CLASS_WORLDPARSER
+
+#include "ManipManager.h"
+
+#include <xeumeuleu/xml.h>
+
+#include <string>
+
+/*<world>
+  <robot type="my element" x=0 y=1 z=2 />
+  <obstacles>
+	<obstacle> 
+		<p0 x="" y="" z=""/>
+		<p1 x="" y="" z=""/>
+		<p2 x="" y="" z=""/>
+		<p3 x="" y="" z=""/>
+	</obstacle>
+	...
+	<obstacle> 
+		<p0 x="" y="" z=""/>
+		<p1 x="" y="" z=""/>
+		<p2 x="" y="" z=""/>
+		<p3 x="" y="" z=""/>
+	</obstacle>
+	...
+	<verticalChess> 
+		<depth x="" y="" z=""/>
+		<p0 x="" y="" z=""/>
+		<p3 x="" y="" z=""/>
+	</verticalChess>
+	...
+	<prise> 
+		<p0 x="" y="" z=""/>
+	</prise>
+  </obstacles>
+</world>*/
+struct WorldParser
+{
+public:
+	 WorldParser();
+	~WorldParser();
+
+	void CreateWorld(const std::string& filename);
+
+private:
+	void CreateRobot   (const int /*type*/, const float /*x*/, const float /*y*/, const float /*z*/) const;
+	void CreateObstacle(const std::string& /*name*/, xml::xistream& /*xis*/) const;
+
+private:
+	manip_core::ManipManager& manager_;
+};
+
+#endif //_CLASS_WORLDPARSER

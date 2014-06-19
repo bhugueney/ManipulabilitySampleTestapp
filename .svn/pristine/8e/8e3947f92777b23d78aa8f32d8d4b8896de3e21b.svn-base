@@ -1,0 +1,325 @@
+/**
+* \file OptimizeSpline.h
+* \brief Optimization loop for cubic spline generations
+* \author Steve T.
+* \version 0.1
+* \date 06/17/2013
+*
+* This file uses the mosek library to optimize the waypoints location
+* to generate exactCubic spline
+*/
+
+#include "API/MathDefs.h" 
+#include "API/ExactCubic.h" 
+#include "mosek/mosek.h" 
+
+#include <stdio.h>
+
+/* This function prints log output from MOSEK to the terminal. */
+static void MSKAPI printstr(void *handle,
+                            MSKCONST char str[])
+{
+  printf("%s",str);
+} /* printstr */
+
+int optimize(const spline::T_Waypoint& waypoints)
+{
+	/*first compute the h matrices*/
+	size_t size = waypoints.size();
+	assert(size > 1);
+	// refer to the paper to understand all this.
+	spline::MatrixX h1 = spline::MatrixX::Zero(size, size);
+	spline::MatrixX h2 = spline::MatrixX::Zero(size, size);
+	spline::MatrixX h3 = spline::MatrixX::Zero(size, size);
+	spline::MatrixX h4 = spline::MatrixX::Zero(size, size);
+	spline::MatrixX h5 = spline::MatrixX::Zero(size, size);
+	spline::MatrixX h6 = spline::MatrixX::Zero(size, size);
+	
+	spline::Real dTi, dTi_1, dTi_sqr, dTi_1sqr, dTi_cube;
+	spline::Real t_previous = waypoints[0].first;
+
+	// I think using numbers instead of iterators will be clearer on this case
+	for(int i=0; i< size - 1; ++i)
+	{
+		dTi      = waypoints[i + 1].first - waypoints[i].first;
+		dTi_sqr  = dTi * dTi;
+		dTi_cube = dTi_sqr * dTi;
+		
+		assert(dTi > 0); //make sure of the ascendant order
+
+		// filling matrices values
+		h3(i,i)   = -3 / dTi_sqr;
+		h3(i,i+1) =  3 / dTi_sqr;
+				
+		h4(i,i)   = -2 / dTi;
+		h4(i,i+1) = -1 / dTi;
+
+		h5(i,i)   =  2 / dTi_cube;
+		h5(i,i+1) = -2 / dTi_cube;
+		
+		h6(i,i)   = 1 / dTi_sqr;
+		h6(i,i+1) = 1 / dTi_sqr;
+
+		// we stop one step earlier for matrices h1 and h2
+		if(i + 2 < size)
+		{
+			// this can be optimized but let's focus on clarity as long as not needed
+			dTi_1	  = waypoints[i + 2].first - waypoints[i + 1].first;
+			dTi_1sqr  = dTi_1 * dTi_1;
+
+			h1(i+1, i)   = 2 / dTi;
+			h1(i+1, i+1) = 4 / dTi + 4 / dTi_1;
+			h1(i+1, i+2) = 2 / dTi_1;
+
+			h2(i+1, i)   = - 6 / dTi_sqr;
+			h2(i+1, i+1) =   (6 / dTi_1sqr) - (6 / dTi_sqr);
+			h2(i+1, i+2) =   6 / dTi_1sqr;
+		}
+	}
+	
+	// number of Waypoints : T + 1 => T mid points. 3 variables per points, + acceleration + derivations
+	// (T * t+ 1 ) * 3 * 3 = nb var
+	int T_Plus_one = waypoints.size(); 
+	assert(T_Plus_one > 1);
+
+	const MSKint32t numvar = ( T_Plus_one + T_Plus_one - 1) * 3 * 3;
+	const MSKint32t numcon = 3; // TODO
+
+	/* Number of non-zeros in Q. We integrate all the velocities, so that makes ( t + (t + 1)) */
+	const MSKint32t  numqz = T_Plus_one + (T_Plus_one - 1);
+
+	/*
+	We store the variables in that order
+	x
+	x.
+	x..
+	x'
+	x'.
+	x'..
+	*/
+
+	/*Q looks like this :
+	0 0 0 0 0 0
+	0 2 0 0 0 0
+	0 0 0 0 0 0 
+	0 0 0 0 0 0
+	0 0 0 0 2 0
+	0 0 0 0 0 0	
+	*/
+
+	// to compute A i'll create an eigen matrix, then i'll convert it to a sparse one and fill those tables
+	spline::MatrixX x1 = spline::MatrixX::Ones(size, 3);
+
+	//creating a matrix full of ones to compute the coefficients of A
+
+
+	/*the first constraint is H1x. = H2x => H2x - H1x. = 0
+	this will give us size * 3 inequalities constraints
+	So this line of A will be writen
+	H2 -H1 0 0 0 0
+	*/
+
+	spline::MatrixX h1x = spline::MatrixX::Zero(size * 3, numvar);
+
+	// a column of A matches one variable. the variable rank for value (i,j) is (3*i) + j for x, (3*i) + j + (size*3) for x'
+
+	/*we have 6 * size variables to fill*/
+
+	int offset = (int)(size * 3);
+	for(int a_row = 0; a_row< offset; ++ a_row)
+	{
+	}
+
+	for(int h_row = 0; h_row < size; ++h_row)
+	{
+		// fill the x constraints for h2 * x(i, j), we have the line i of h1 against col j of x 
+		for(int a_col = 0; a_col < offset; ++ a_col)
+		{
+			h1x(h_row, a_col) = h2(h_row, a_col);
+		}
+		h1x(a_row, a_Col) = h2(i, j);
+		h1x(a_row, a_Col + offset) = - h1(i, j);
+		++a_row; // 
+	}
+	
+
+
+	double       c[]     = {3.0, 1.0, 5.0, 1.0};
+	/* Below is the sparse representation of the A
+		matrix stored by column. */
+	MSKint32t    aptrb[] = {0, 2, 5, 7},
+				aptre[] = {2, 5, 7, 9},
+				asub[]  = { 0, 1,
+							0, 1, 2,
+							0, 1,
+							1, 2};
+	double       aval[]  = { 3.0, 2.0,
+							1.0, 1.0, 2.0,
+							2.0, 3.0,
+							1.0, 3.0};
+
+	/* Bounds on constraints. */
+	MSKboundkeye bkc[]  = {MSK_BK_FX, MSK_BK_LO,     MSK_BK_UP    };
+	double       blc[]  = {30.0,      15.0,          -MSK_INFINITY};
+	double       buc[]  = {30.0,      +MSK_INFINITY, 25.0         };
+	/* Bounds on variables. */
+	MSKboundkeye bkx[]  = {MSK_BK_LO,     MSK_BK_RA, MSK_BK_LO,     MSK_BK_LO     };
+	double       blx[]  = {0.0,           0.0,       0.0,           0.0           };
+	double       bux[]  = {+MSK_INFINITY, 10.0,      +MSK_INFINITY, +MSK_INFINITY };
+	MSKenv_t     env  = NULL;
+	MSKtask_t    task = NULL;
+	MSKrescodee  r;
+	MSKint32t    i,j;
+   
+	/* Create the mosek environment. */
+	r = MSK_makeenv(&env,NULL);
+  
+	if ( r==MSK_RES_OK )
+	{
+	/* Create the optimization task. */
+	r = MSK_maketask(env,numcon,numvar,&task);
+
+	/* Directs the log task stream to the 'printstr' function. */
+	if ( r==MSK_RES_OK )
+		r = MSK_linkfunctotaskstream(task,MSK_STREAM_LOG,NULL,printstr);
+
+	/* Append 'numcon' empty constraints.
+		The constraints will initially have no bounds. */
+	if ( r == MSK_RES_OK )
+		r = MSK_appendcons(task,numcon);
+
+	/* Append 'numvar' variables.
+		The variables will initially be fixed at zero (x=0). */
+	if ( r == MSK_RES_OK )
+		r = MSK_appendvars(task,numvar);
+
+	for(j=0; j<numvar && r == MSK_RES_OK; ++j)
+	{
+		/* Set the linear term c_j in the objective.*/  
+		if(r == MSK_RES_OK)
+		r = MSK_putcj(task,j,c[j]);
+
+		/* Set the bounds on variable j.
+		blx[j] <= x_j <= bux[j] */
+		if(r == MSK_RES_OK)
+		r = MSK_putvarbound(task,
+							j,           /* Index of variable.*/
+							bkx[j],      /* Bound key.*/
+							blx[j],      /* Numerical value of lower bound.*/
+							bux[j]);     /* Numerical value of upper bound.*/
+
+		/* Input column j of A */   
+		if(r == MSK_RES_OK)
+		r = MSK_putacol(task,
+						j,                 /* Variable (column) index.*/
+						aptre[j]-aptrb[j], /* Number of non-zeros in column j.*/
+						asub+aptrb[j],     /* Pointer to row indexes of column j.*/
+						aval+aptrb[j]);    /* Pointer to Values of column j.*/
+	}
+
+	/* Set the bounds on constraints.
+		for i=1, ...,numcon : blc[i] <= constraint i <= buc[i] */
+	for(i=0; i<numcon && r==MSK_RES_OK; ++i)
+		r = MSK_putconbound(task,
+							i,           /* Index of constraint.*/
+							bkc[i],      /* Bound key.*/
+							blc[i],      /* Numerical value of lower bound.*/
+							buc[i]);     /* Numerical value of upper bound.*/
+
+	/* Maximize objective function. */
+	if (r == MSK_RES_OK)
+		r = MSK_putobjsense(task, MSK_OBJECTIVE_SENSE_MAXIMIZE);
+
+	if ( r==MSK_RES_OK )
+	{
+		MSKrescodee trmcode;
+    
+		/* Run optimizer */
+		r = MSK_optimizetrm(task,&trmcode);
+
+		/* Print a summary containing information
+			about the solution for debugging purposes. */
+		MSK_solutionsummary (task,MSK_STREAM_LOG);
+     
+		if ( r==MSK_RES_OK )
+		{
+		MSKsolstae solsta;
+    
+		if ( r==MSK_RES_OK )
+			r = MSK_getsolsta (task,
+								MSK_SOL_BAS,
+								&solsta);
+		switch(solsta)
+		{
+			case MSK_SOL_STA_OPTIMAL:   
+			case MSK_SOL_STA_NEAR_OPTIMAL:
+			{
+			double *xx = (double*) calloc(numvar,sizeof(double));
+			if ( xx )
+			{
+				MSK_getxx(task,
+						MSK_SOL_BAS,    /* Request the basic solution. */
+						xx);
+        
+				printf("Optimal primal solution\n");
+				for(j=0; j<numvar; ++j)
+				printf("x[%d]: %e\n",j,xx[j]);
+
+				free(xx);
+			}
+			else 
+				r = MSK_RES_ERR_SPACE;
+
+			break;
+			}
+			case MSK_SOL_STA_DUAL_INFEAS_CER:
+			case MSK_SOL_STA_PRIM_INFEAS_CER:
+			case MSK_SOL_STA_NEAR_DUAL_INFEAS_CER:
+			case MSK_SOL_STA_NEAR_PRIM_INFEAS_CER:  
+			printf("Primal or dual infeasibility certificate found.\n");
+			break;
+			case MSK_SOL_STA_UNKNOWN:
+			{
+			char symname[MSK_MAX_STR_LEN];
+			char desc[MSK_MAX_STR_LEN];
+
+			/* If the solutions status is unknown, print the termination code
+				indicating why the optimizer terminated prematurely. */
+            
+			MSK_getcodedesc(trmcode,
+							symname,
+							desc);
+            
+			printf("The solutuion status is unknown.\n");
+			printf("The optimizer terminitated with code: %s\n",symname);
+			break;
+			}
+			default:
+			printf("Other solution status.\n");
+			break;
+		}
+		}
+	}
+    
+	if (r != MSK_RES_OK)
+	{
+		/* In case of an error print error code and description. */      
+		char symname[MSK_MAX_STR_LEN];
+		char desc[MSK_MAX_STR_LEN];
+      
+		printf("An error occurred while optimizing.\n");     
+		MSK_getcodedesc (r,
+						symname,
+						desc);
+		printf("Error %s - '%s'\n",symname,desc);
+	}
+    
+	/* Delete the task and the associated data. */
+	MSK_deletetask(&task);
+	}
+
+	/* Delete the environment and the associated data. */
+	MSK_deleteenv(&env);
+    
+	return r;
+}

@@ -1,0 +1,41 @@
+
+#include "ObstacleGenerator.h"
+#include "Obstacle.h"
+#include "World.h"
+
+using namespace matrices;
+using namespace Eigen;
+
+ObstacleGenerator::ObstacleGenerator()
+{
+	// NOTHING	
+}
+
+ObstacleGenerator::~ObstacleGenerator()
+{
+	// NOTHING
+}
+
+void ObstacleGenerator::Generate(World& world, const matrices::Vector3& upLeft, const matrices::Vector3& bottomRight, NUMBER height, const unsigned int depth) const
+{
+	// stop condition, depth = 0, flat rectangle
+	if(0 == depth)
+	{
+		Vector3 nUL (upLeft.x(), upLeft.y(), height);
+		Vector3 nBR (bottomRight.x(), bottomRight.y(), height);
+		Vector3 upRight(bottomRight.x(), upLeft.y(), height);
+		Vector3 downLeft(upLeft.x(), bottomRight.y(), height);
+		world.AddObstacle(new Obstacle(nUL, upRight, nBR, downLeft));
+	}
+	else
+	{
+		Vector3 dx((bottomRight.x() - upLeft.x()) / 2., 0, 0);
+		Vector3 dy(0, (upLeft.y() - bottomRight.y()) / 2., 0);
+		NUMBER dHeight = (1 == depth) ? 0.1 : 0.;
+		unsigned int newDepth = depth - 1;
+		Generate(world, upLeft, upLeft + dx - dy, height - dHeight, newDepth);
+		Generate(world, upLeft + dx, bottomRight + dy, height + dHeight, newDepth);
+		Generate(world, upLeft - dy, bottomRight - dx, height + dHeight, newDepth);
+		Generate(world, upLeft + dx - dy, bottomRight, height - dHeight, newDepth);
+	}
+}

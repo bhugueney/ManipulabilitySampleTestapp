@@ -1,0 +1,74 @@
+
+#include "DrawTree.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Joint.h"
+#include "kinematic/MatrixDefs.h"
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+using namespace matrices;
+
+DrawTree::DrawTree(const Tree& tree)
+	: tree_(&tree)
+{
+	// NOTHING
+}
+
+DrawTree::~DrawTree()
+{
+	// NOTHING
+}
+
+void DrawTree::Draw(const matrices::Matrix4& currentTransform) const
+{
+	matrices::Matrix4 m = currentTransform;
+	Joint* joint = tree_->GetRoot();
+	while ( joint )
+	{
+		DrawJoint( m, joint );
+		joint = ( joint->IsEffector() ? 0 : tree_->GetSuccessor( joint ) );
+	}
+}
+
+void DrawTree::DrawJoint(matrices::Matrix4& currentTransform, Joint* joint) const
+{
+	//draw line between positions
+	float from[3];
+	vect4ToArray( from, currentTransform.col(3) );
+
+	Matrix4 jointTransform = Translate( joint->GetR() ); // translation of current joint
+	switch( joint->GetRotation() )
+	{
+		case X:
+			jointTransform = jointTransform + Rotx4( joint->GetTheta() );
+			break;
+		case Y:
+			jointTransform = jointTransform + Roty4( joint->GetTheta() );
+			break;
+		case Z:
+			jointTransform = jointTransform + Rotz4( joint->GetTheta() );
+			break;
+	}
+	currentTransform = currentTransform * jointTransform;
+	float R[12];
+	matrixToArray( R, currentTransform );
+    dsSetColor(1.0,0.0,0.0);
+	float ps[3];
+
+
+	vect4ToArray( ps, currentTransform.col(3) );
+	if(joint->pChild_)
+	{
+		dsDrawSphere (ps, R, 0.05);
+	}
+	else
+	{
+		float sides[3] = {0.05, 0.05, 0.05};
+		dsDrawBox(ps, R, sides);
+	}
+
+	//draw line between positions
+	if( joint->pRealparent_ )
+		dsDrawLine( from, ps );
+}
+

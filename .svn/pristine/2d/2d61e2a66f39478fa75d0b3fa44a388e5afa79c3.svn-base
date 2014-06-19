@@ -1,0 +1,64 @@
+
+#ifndef _CLASS_POSTUREMANAGERI
+#define _CLASS_POSTUREMANAGERI
+
+#include "Exports.h"
+
+namespace manip_core
+{
+namespace enums
+{
+namespace postureCriteria
+{
+	enum ePostureCriteria
+	{
+		toeOffBoundary = 0, // raise foot when off boundary
+		toeOnCOM,           // anchor foot when stability is lost
+		unknown
+	};
+}// namespace postureCriteria
+}// namespace enums
+
+struct RobotI;
+
+struct MANIPCORE_API PostureCreatedListenerI
+{
+public:
+	/** Called whenever a new posture has been created.
+	*/
+	virtual void OnPostureCreated(double /*time*/, const RobotI* /*pRobot*/) = 0; // TODO posture destroyed ?
+};
+
+struct MANIPCORE_API PostureManagerI
+{
+	/** Deletes the current PostureManagerI.
+	*/
+	virtual void Release() = 0;
+	/**	Add a desired posture to the trajectory path. Parameters are time and a 4 square column-major matrix.
+	 */
+	virtual void AddTrajectoryPoint(const float time, const double* /*transform*/)= 0;
+	/**
+	Add a criteria either for raising or lowering foot.
+	*/
+	virtual void AddPostureCriteria(const enums::postureCriteria::ePostureCriteria /*criteria*/) = 0;
+	/**
+	Register a PostureCreatedListenerI that will be called whenever a new posture is created
+	*/
+	virtual void RegisterPostureCreatedListenerI(PostureCreatedListenerI* /*listener*/) = 0;	
+	/**
+	Unregister a previously created lister
+	*/
+	virtual void UnRegisterPostureCreatedListenerI(PostureCreatedListenerI* /*listener*/) = 0;
+	/**
+	Compute solution posture for given trajectory and constraints
+	*/
+	virtual void InitSamples(const RobotI* /*robot*/, int /*nbSamples*/) = 0;
+
+	virtual void Compute(const RobotI* /*robot*/, int /*nbSamples*/) = 0;
+
+	// direction in world coordinates
+	virtual void NextPosture(RobotI* /*robot*/, double* /*dir*/) = 0;
+};
+
+} // namespace manip_core
+#endif //_CLASS_POSTUREMANAGERI

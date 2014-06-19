@@ -1,0 +1,122 @@
+
+#include "Joint.h"
+#include "Pi.h"
+#include "MatrixDefs.h"
+#include "ComVisitor_ABC.h"
+
+#include <math.h>
+
+using namespace matrices;
+using namespace factories;
+
+
+Joint::Joint(const Vector3& attach, const Vector3& iRotAxis, Purpose purpose, Com com, NUMBER minTheta, NUMBER maxTheta, NUMBER restAngle, Rotation rot)
+	: r_			(0, 0, 0)
+	, purpose_		(purpose)
+	, attach_		(attach) 
+	, v_			(iRotAxis) // Rotation axis when joints at zero angles
+	, theta_		(0)
+	, pRealparent_	(0)
+	, restAngle_	(restAngle)
+	, minTheta_		(minTheta)
+	, maxTheta_		(maxTheta)
+	, pChild_		(0)
+	, rot_(rot)
+	, com_(com)
+{
+	// NOTHING
+}
+
+Joint::Joint(const Vector3& attach, const Vector3& iRotAxis, Purpose purpose, Com com, NUMBER restAngle, Rotation rot)
+	: r_			(0, 0, 0)
+	, purpose_		(purpose)
+	, attach_		(attach) 
+	, v_			(iRotAxis) // Rotation axis when joints at zero angles
+	, theta_		(0)
+	, pRealparent_	(0)
+	, restAngle_	(restAngle)
+	, minTheta_		(-Pi)
+	, maxTheta_		(Pi)
+	, pChild_		(0)
+	, rot_(rot)
+	, com_(com)
+{
+	// NOTHING
+}
+
+Joint::~Joint()
+{
+	//NOTHING
+}
+
+NUMBER Joint::AddToTheta(const NUMBER delta)
+{ 
+	NUMBER newTheta = theta_ + delta;
+	/*if(newTheta > maxTheta_)
+	{
+		theta_ = maxTheta_;
+	}
+	else if (newTheta < minTheta_)
+	{
+		theta_ = minTheta_;
+	}
+	else
+	{
+		theta_ = newTheta;
+	}
+	return newTheta - theta_;*/
+	theta_ = newTheta;
+	return 0.f;
+}
+
+
+// Compute the global position of a single Joint
+void Joint::ComputeS(void)
+{
+	Joint* y = this->pRealparent_;
+	Joint* w = this;
+	s_ = r_;							// Initialize to local (relative) position
+	while (y) {
+		Rotate(y->v_, s_, y->theta_);
+		y = y->pRealparent_;
+		w = w->pRealparent_;
+		s_ += w->r_;
+	}
+}
+
+// Compute the global rotation axis of a single Joint
+void Joint::ComputeW(void)
+{
+	Joint* y = this->pRealparent_;
+	w_ = v_;							// Initialize to local rotation axis
+	while (y) {
+		Rotate(y->v_, w_, y->theta_);
+		y = y->pRealparent_;
+	}
+}
+
+void Joint::InitJoint()
+{
+	theta_ = restAngle_;
+}
+
+void Joint::ToRest()
+{
+	theta_ = restAngle_;
+}
+
+Joint* Joint::Clone() const
+{
+	Joint* res = new Joint(attach_, v_, purpose_, com_, minTheta_, maxTheta_, restAngle_, rot_);
+	res->theta_ = theta_;
+	return res;
+}
+
+void Joint::AcceptComVisitor(ComVisitor_ABC* visitor) const
+{
+	if( com_.weight_ != 0 )
+	{
+		Vector3 proximal = pRealparent_ ? pRealparent_->s_ : (Vector3(0,0,0));
+		visitor->VisitCom(com_.Compute(proximal, s_), com_.weight_);
+	}
+}

@@ -1,0 +1,25 @@
+
+#include "ObstacleConstraint.h"
+#include "world/World.h"
+
+#include "kinematic/Jacobian.h"
+
+using namespace matrices;
+using namespace Eigen;
+
+ObstacleConstraint::ObstacleConstraint(const World& world)
+{
+	// NOTHING
+}
+
+ObstacleConstraint::~ObstacleConstraint()
+{
+	// NOTHING
+}
+
+NUMBER ObstacleConstraint::Evaluate(Jacobian& jacobianMinus, Jacobian& jacobianPlus, float epsilon, const Vector3& direction)
+{
+ 	return 0 ;
+}
+
+

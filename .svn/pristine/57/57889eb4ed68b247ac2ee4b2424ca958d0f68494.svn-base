@@ -1,0 +1,69 @@
+#include "Scorer.h"
+#include "API/RobotI.h"
+#include "API/TreeI.h"
+
+using namespace manip_core;
+using namespace statepostures;
+
+ScorerHuman::ScorerHuman()
+{
+	// NOTHING
+}
+
+ScorerHuman::~ScorerHuman()
+{
+	// NOTHING
+}
+
+namespace
+{
+	bool IsSameState(const std::vector<bool>& a, const std::vector<bool>& b)
+	{
+		bool res = a.size() == b.size();
+		std::vector<bool>::const_iterator it2 = b.begin();
+		for(std::vector<bool>::const_iterator it = a.begin(); it!= a.end() && res; ++ it, ++it2)
+		{
+			res = res && ((*it) == (*it2));
+		}
+		return res;
+	}
+
+	void ComputeState(const RobotI* posture, std::vector<bool>& values, float& val)
+	{
+		bool temp;
+		for(unsigned int i=0; i < posture->GetNumTrees(); ++i)
+		{
+			temp = posture->GetTreeI(i)->IsAnchored();
+			values.push_back(temp);
+			if(!temp) ++val;
+		}
+	}
+}
+
+float ScorerHuman::operator()(const std::vector<RobotI*>& postures) const
+{
+	/*prefer states where most contacts are preserved. Do as follows:
+	- Every transition gives one point (0 if same state)
+	- Number of false members (ie not in contact) is the number of points given by the state
+	*/
+	if(postures.size() == 0) return 0.f;
+	float val = 0;
+	std::vector<bool>* previous = new std::vector<bool>();
+	std::vector<bool>* current = new std::vector<bool>();
+	std::vector<bool>* temp;
+	for(std::vector<RobotI*>::const_iterator it = postures.begin(); it != postures.end(); ++it)
+	{
+		ComputeState((*it), *current, val);
+		if(!IsSameState(*previous, *current))
+		{
+			val+=1;
+		}
+		previous->clear();
+		temp = previous;
+		previous = current;
+		current = temp;
+	}
+	delete previous;
+	delete current;
+	return val;
+}

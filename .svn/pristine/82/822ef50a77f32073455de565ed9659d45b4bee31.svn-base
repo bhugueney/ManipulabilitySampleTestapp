@@ -1,0 +1,24 @@
+
+#ifndef _CLASS_SIMPLESAMPLEVISITOR
+#define _CLASS_SIMPLESAMPLEVISITOR
+
+#include "kinematic/SampleGeneratorVisitor_ABC.h"
+
+class Sample;
+class Tree;
+
+class SimpleSampleVisitor : public SampleGeneratorVisitor_ABC
+{
+
+public:
+	 SimpleSampleVisitor(Tree* /*pTree*/);
+	~SimpleSampleVisitor();
+
+public:
+	virtual void Visit(const Sample& /*sample*/);
+
+private:
+	Tree* pTree_;
+};
+
+#endif //_CLASS_SIMPLESAMPLEVISITOR

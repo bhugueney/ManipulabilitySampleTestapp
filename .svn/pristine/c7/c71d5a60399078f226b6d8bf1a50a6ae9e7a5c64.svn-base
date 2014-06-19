@@ -1,0 +1,6 @@
+#ifdef SPLINE_DLLEXPORT
+	#define SPLINE_API __declspec(dllexport)
+#else
+	#define SPLINE_API __declspec(dllimport)
+#endif
+

@@ -1,0 +1,58 @@
+
+#include "DrawWorld.h"
+#include "DrawObstacle.h"
+
+#include "World.h"
+#include "MatrixDefs.h"
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+#include <vector>
+
+using namespace std;
+using namespace matrices;
+
+struct PImpl
+{
+	PImpl()
+	{
+		//NOTHING
+	}
+
+	~PImpl()
+	{
+		//NOTHING
+	}
+
+	typedef vector<DrawObstacle> T_Obstacle;
+	typedef T_Obstacle::iterator T_ObstacleIT;
+	typedef T_Obstacle::const_iterator T_ObstacleCIT;
+	T_Obstacle drawObstacles_;
+};
+
+
+
+//TODO listener in case of adding new trees
+DrawWorld::DrawWorld(const World& world)
+	: pImpl_(new PImpl)
+{
+	world.Accept(*this);
+}
+
+DrawWorld::~DrawWorld()
+{
+	// TODO
+}
+
+void DrawWorld::Draw() const
+{
+	for( PImpl::T_ObstacleCIT it = pImpl_->drawObstacles_.begin(); it!= pImpl_->drawObstacles_.end(); ++it)
+	{
+		it->Draw();
+	}
+}
+
+void DrawWorld::Visit(const Obstacle& obstacle)
+{
+	pImpl_->drawObstacles_.push_back(DrawObstacle(obstacle));
+}

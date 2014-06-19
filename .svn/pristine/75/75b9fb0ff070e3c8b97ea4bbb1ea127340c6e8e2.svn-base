@@ -1,0 +1,35 @@
+
+#ifndef _CLASS_ROBOT
+#define _CLASS_ROBOT
+
+#include "MatrixDefs.h"
+
+#include <memory>
+
+class RobotVisitor_ABC;
+class Tree;
+struct PImpl;
+
+class Robot {
+
+public:
+	Robot(const matrices::Matrix4& /*transform*/); //basis switch
+	~Robot();
+
+//configure
+public:
+	void AddTree( Tree* tree );
+
+//helpers
+public:
+	void Accept(RobotVisitor_ABC& /*visitor*/) const;
+	const matrices::Matrix4& ToWorldCoordinates() const;
+//action
+public:
+	void Move( const matrices::Vector3& direction ); 
+
+private:
+	std::auto_ptr<PImpl> pImpl_;
+};
+
+#endif //_CLASS_ROBOT

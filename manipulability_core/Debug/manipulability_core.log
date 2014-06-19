@@ -1,0 +1,85 @@
+﻿La génération a démarré 05/02/2013 12:30:32.
+     1>Projet "C:\dev\manipulability_app\manipulability_core\manipulability_core.vcxproj" sur le nœud 2 (ClCompile cible(s)).
+     1>ClCompile:
+         c:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\bin\CL.exe /c /I..\include /I..\src\manipulability_core /ZI /nologo /W3 /WX- /Od /Oy- /D MANIPCORE_DLLEXPORT /D WIN32 /D _DEBUG /D _WINDOWS /D _USRDLL /D MANIPULABILITY_CORE_EXPORTS /D _WINDLL /D _UNICODE /D UNICODE /Gm /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /Fo"Debug\\" /Fd"Debug\vc100.pdb" /Gd /TP /analyze- /errorReport:prompt ..\src\manipulability_core\kinematic\Tree.cpp
+         Tree.cpp
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\tree.h(68): warning C4251: 'Tree::directionForce_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Tree'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=3,
+                     _Cols=1
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\tree.h(69): warning C4251: 'Tree::directionVel_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Tree'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=3,
+                     _Cols=1
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\tree.h(70): warning C4251: 'Tree::target_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Tree'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=3,
+                     _Cols=1
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\tree.h(71): warning C4251: 'Tree::referenceTarget_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Tree'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=3,
+                     _Cols=1
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\jacobian.h(41): warning C4251: 'Jacobian::jacobianProductInverse_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Jacobian'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=3,
+                     _Cols=3
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\jacobian.h(42): warning C4251: 'Jacobian::jacobianProduct_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Jacobian'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=3,
+                     _Cols=3
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\jacobian.h(43): warning C4251: 'Jacobian::jacobian_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Jacobian'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=-1,
+                     _Cols=-1
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\jacobian.h(44): warning C4251: 'Jacobian::jacobianInverse_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Jacobian'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=-1,
+                     _Cols=-1
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\jacobian.h(45): warning C4251: 'Jacobian::jacobianInverseNoDls_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Jacobian'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=-1,
+                     _Cols=-1
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\jacobian.h(46): warning C4251: 'Jacobian::Identitymin_' : class 'Eigen::Matrix<_Scalar,_Rows,_Cols>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Jacobian'
+                 with
+                 [
+                     _Scalar=double,
+                     _Rows=-1,
+                     _Cols=-1
+                 ]
+     1>c:\dev\manipulability_app\src\manipulability_core\kinematic\jacobian.h(47): warning C4251: 'Jacobian::svd_' : class 'Eigen::JacobiSVD<_MatrixType>' nécessite une interface DLL pour être utilisé(e) par les clients de class 'Jacobian'
+                 with
+                 [
+                     _MatrixType=Eigen::Matrix<double,-1,-1>
+                 ]
+     1>Génération du projet "C:\dev\manipulability_app\manipulability_core\manipulability_core.vcxproj" terminée (ClCompile cible(s)).
+
+La génération a réussi.
+
+Temps écoulé 00:00:02.44

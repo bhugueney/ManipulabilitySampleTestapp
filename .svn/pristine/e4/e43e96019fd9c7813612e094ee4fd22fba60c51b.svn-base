@@ -1,0 +1,55 @@
+/**
+* \file ExactCubic.h
+* \brief Programme de tests.
+* \author Steve T.
+* \version 0.1
+* \date 06/17/2013
+*
+* This file contains definitions for classes CubicFunction and ExactCubic.
+* They allow to create a smooth, continuous natural 2D or 3D cubic spline that passes 
+* exactly through a set of desired points at desired timesteps.
+*/
+
+
+#ifndef _CLASS_EXACTCUBIC
+#define _CLASS_EXACTCUBIC
+
+#include "Exports.h"
+#include "MathDefs.h"
+
+#include "EigenInterface.h"
+
+
+namespace spline
+{
+		/*! \class CPlayer
+	* \brief classe representant le lecteur
+	*
+	*  La classe gere la lecture d'une liste de morceaux
+	*/
+	struct SPLINE_API ExactCubic
+	{
+		/** Deletes the current JointI.
+		*/
+		virtual void Release() = 0;
+
+		/** Returns current joint angle value.
+		*/
+		virtual double GetAngle() const = 0;
+		/** Joint translation vector from its parent (or Tree if joint is root).
+		*/
+		virtual void Offset(double * /*offset*/) const = 0;
+
+		/** Get joint rotation axis. Can be either X Y or Z.
+		*/
+		virtual const manip_core::enums::rotation::eRotation GetRotation() const = 0;
+
+		virtual const JointI* GetSon() const = 0;
+		virtual const JointI* GetParent() const = 0;
+
+		virtual bool IsEffector() const = 0;
+		virtual bool IsJoint() const = 0;
+
+	};
+}
+#endif //_CLASS_EXACTCUBIC

@@ -1,0 +1,18 @@
+<world>
+  <robot type="0" samples="10000" x="0" y="0" z="1.4" rotx="0" roty="0" rotz="0" iDirx="0" iDiry="0" iDirz="1" 
+  autorotate="false" autorotateleg="false" jumptotarget="true" drawsplines="false" drawnormals="false" reachcom="false" reachcomrotate="false" humanrotate="false"  rotatewithspline="true" rotatewithsplinedir="false" speed = "0.5">
+  
+  </robot>
+  
+  <camera x="0" y="-5" z="3" rotx="90" roty="-10" rotz="0"/>
+  <background r="1" g="1" b="1" sky="false" ground="false"/>
+  <obj name="../world/armoire.obj"/>
+  <obstacles offSet="false">
+	<color> 
+		<p0 r="0.42" g="0.91" b="1" t ="0.3"/>
+	</color>
+	<color>
+		<p0 r="0.8" g="0.8" b="1" t ="1"/>
+	</color>
+  </obstacles>
+</world>

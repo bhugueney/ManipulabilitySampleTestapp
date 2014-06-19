@@ -1,0 +1,7 @@
+#!/bin/bash
+
+
+path=`dirname $0`;
+t="`cd $path/..; pwd`"
+
+../../config_all/config.sh "$t" 'ode/0.12/ode' 'ode/0.12/drawstuff'

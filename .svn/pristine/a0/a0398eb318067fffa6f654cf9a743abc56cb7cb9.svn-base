@@ -1,0 +1,152 @@
+#include "kinematic/Joint.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Robot.h"
+
+#include "Obstacle.h"
+#include "World.h"
+
+#include "MatrixDefs.h"
+#include "Pi.h"
+
+#include "DrawRobot.h"
+#include "DrawWorld.h"
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#include <iostream>
+#include <vector>
+
+#define RADIAN(X)	((X)*DegreesToRadians)
+
+using namespace matrices;
+using namespace Eigen;
+using namespace std;
+
+// main object
+Robot* pRobot;
+DrawRobot* pDrawRobot;
+World* pWorld;
+DrawWorld* pDrawWorld;
+
+void command(int cmd)   /**  key control function; */
+{
+	//NOTHING
+}
+
+void BuildRobot(Robot& robot)
+{
+	//principal axes constants
+	const Vector3 unitx(1, 0, 0);
+	const Vector3 unity(0, 1, 0);
+	const Vector3 unitz(0, 0, 1);
+	const Vector3 unit1(sqrt(14.0)/8.0, 1.0/8.0, 7.0/8.0);
+	const Vector3 zero(0,0,0);
+
+	/*RIGHT ARM*/
+	Joint* node[6];
+	Tree* rightArm = new Tree();
+	node[0] = new Joint(Vector3(0.0, 0.0, 1.7), unity, JOINT, RADIAN(-180.), RADIAN(180.), RADIAN(0),   Y);
+	rightArm->InsertRoot(node[0]);
+
+	node[1] = new Joint(Vector3(0.0, 0.0, 1.7), unitx, JOINT, RADIAN(-135) , RADIAN(135) , RADIAN(0),   X);
+	rightArm->InsertChild(node[0], node[1]);
+
+	node[2] = new Joint(Vector3(0.0, 0.0, 1.7), unitz, JOINT, RADIAN(-45)  , RADIAN(45)  , RADIAN(0),   Z);
+	rightArm->InsertChild(node[1], node[2]);
+
+	node[3] = new Joint(Vector3(0.0, 0.0, 0.9), unity, JOINT, RADIAN(-90)  , RADIAN(45)  , RADIAN(-30), Y);
+	rightArm->InsertChild(node[2], node[3]);
+
+	node[4] = new Joint(Vector3(0.0, 0.0, 0.9), unitx, JOINT, RADIAN(-180.), RADIAN(180.), RADIAN(0.),  X);
+	rightArm->InsertChild(node[3], node[4]);
+
+	node[5] = new Joint(Vector3(0.0, 0.0, 0.0), zero, EFFECTOR);
+	rightArm->InsertChild(node[4], node[5]);
+
+	robot.AddTree(rightArm);
+}
+
+
+void BuildWorld(World& world)
+{
+	Vector3 p1(-1,1,0.1f);
+	Vector3 p2(1,1,0.1f);
+	Vector3 p3(1,0,0.1f);
+	Vector3 p4(-1,0,0.1f);
+
+	world.AddObstacle(new Obstacle(p1,p2,p3,p4));
+
+	float pose = -4.f;
+	float posey = 1.f;
+	Vector3 p11(pose,posey+ 1,0.5f);
+	Vector3 p12(pose+1,posey+ 1,0.5f);
+	Vector3 p13(pose+1,posey,0.1f);
+	Vector3 p14(pose,posey,0.1f);
+
+	world.AddObstacle(new Obstacle(p11,p12,p13,p14));
+
+	pose = 0.2f;
+	posey = 1.f;
+	Vector3 p21(pose,posey+ 1,0.4f);
+	Vector3 p22(pose+1,posey+ 1,0.4f);
+	Vector3 p23(pose+1,posey,1.f);
+	Vector3 p24(pose,posey,1.f);
+
+	world.AddObstacle(new Obstacle(p21,p22,p23,p24));
+}
+
+/**
+Drawstuff stuff :
+*/
+static void simLoop (int pause)
+{
+	pDrawRobot->Draw();
+	pDrawWorld->Draw();
+}
+
+void start()
+{
+    static float xyz[3] = {0.0,-3.0,1.0};
+    static float hpr[3] = {90.0,0.0,0.0};
+    dsSetViewpoint (xyz,hpr);
+}
+
+int main(int argc, char *argv[])
+{
+	//Jacobian *jacobY;
+	//init robot
+	Matrix4 robotBasis( Eigen::MatrixXd::Identity(4,4) );
+	Robot robot(robotBasis);
+	BuildRobot(robot);
+	pRobot = &robot;
+
+	//init DrawRobot
+	DrawRobot dRobot(robot);
+	pDrawRobot = &dRobot;
+
+	// for now mostly contains obstacles
+	World world;
+	BuildWorld(world);
+	pWorld = &world;
+
+	//init DrawWorld
+	DrawWorld dWorld(world);
+	pDrawWorld = &dWorld;
+
+	/*
+	drawstuff stuff*/
+	dsFunctions fn;
+    fn.version = DS_VERSION;
+    fn.start   = &start;
+    fn.step    = &simLoop;
+	fn.command = &command;
+    fn.stop    = 0;
+    fn.path_to_textures = "./textures";
+    dsSimulationLoop (argc,argv,800,600,&fn);
+
+    return 0;
+}

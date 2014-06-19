@@ -1,0 +1,55 @@
+
+#include "Sample.h"
+#include "Tree.h"
+#include "Joint.h"
+
+using namespace matrices;
+
+Sample::Sample(const Tree& tree)
+: jacobian_(tree)
+{
+	Joint * j = tree.GetRoot();
+	while(j)
+	{
+		angles_.push_back(j->GetTheta());
+		position_ = j->GetS();
+		j = j->pChild_;
+	}
+	jacobian_.ComputeAll();
+}
+
+Sample::~Sample()
+{
+	// NOTHING
+}
+
+const Vector3& Sample::GetPosition() const
+{
+	return position_;
+}
+
+void Sample::LoadIntoTree(Tree& tree) const
+{
+	Joint * j = tree.GetRoot();
+	assert( angles_.size() == tree.GetNumJoint() );
+	{
+		for(Sample::LAngles::const_iterator it = angles_.begin(); it < angles_.end() && ( j != 0 ); ++it)
+		{
+			j->SetTheta(*it);
+			j = j->pChild_;
+		}
+		tree.Compute();
+	}
+}
+
+NUMBER Sample::velocityManipulabiliy(const Vector3& direction)
+{
+	NUMBER r = (direction.transpose() * jacobian_.GetJacobianProductInverse() * direction);
+	return 1/sqrt(r);
+}
+
+NUMBER Sample::forceManipulabiliy   (const Vector3& direction)
+{
+	NUMBER r = (direction.transpose() * jacobian_.GetJacobianProduct() * direction);
+	return 1/sqrt(r);
+}

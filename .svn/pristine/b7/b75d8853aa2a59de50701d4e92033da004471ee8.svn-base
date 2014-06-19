@@ -1,0 +1,52 @@
+
+#ifndef _CLASS_IKSOLVER
+#define _CLASS_IKSOLVER
+
+#include "API/IKSolverI.h"
+
+#include "MatrixDefs.h"
+
+#include <memory>
+
+namespace manip_core
+{
+	struct IkConstraintHandlerI;
+}
+class IkConstraintHandler;
+
+class Tree;
+class Jacobian;
+class PartialDerivativeConstraint;
+
+struct IKPImpl;
+
+class IKSolver : public manip_core::IKSolverI {
+
+public:
+	 IKSolver(const float espilon = 0.01f, const float treshold = 0.03f);
+	~IKSolver();
+
+public:
+	bool StepClamping(Tree& /*tree*/, const matrices::Vector3& /*target*/, const matrices::Vector3& /*direction*/, const IkConstraintHandler* /*constraints*/) const; //true if target reached //target in robot coordinates
+	//bool QuickStepClamping(Tree& /*tree*/, const matrices::Vector3& /*target*/) const; //true if target reached // target in robot coordinates
+	void PartialDerivatives(Tree& /*tree*/, const matrices::Vector3& /*direction*/, matrices::VectorX& /*velocities*/, const IkConstraintHandler* /*constraints*/) const;
+
+public:
+	void Register(PartialDerivativeConstraint* constraint);
+
+//inherited
+public:
+	//virtual bool QuickStepClamping(manip_core::TreeI* /*pTree*/, const double* /*target*/) const; //true if target reached // target in robot coordinates
+	virtual bool StepClamping(manip_core::TreeI* /*pTree*/, const double* /*target*/, const double* /*direction*/, const manip_core::IkConstraintHandlerI* /*constraints*/) const; //true if target reached // target in robot coordinates
+	virtual void Release();
+
+private:
+	std::auto_ptr<IKPImpl> pImpl_;
+
+	void PartialDerivative (Tree& /*tree*/, const matrices::Vector3& /*direction*/, matrices::VectorX& /*velocities*/, const IkConstraintHandler* /*constraints*/, const int /*joint*/) const;
+
+	const float epsilon_;
+	const float treshold_;
+};
+
+#endif //_CLASS_IKSOLVER

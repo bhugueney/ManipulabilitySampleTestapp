@@ -1,0 +1,27 @@
+
+#include "FilterDistance.h"
+
+#include "Sample.h"
+
+using namespace matrices;
+using namespace Eigen;
+
+
+FilterDistance::FilterDistance(NUMBER treshold, const Vector3& target)
+	: treshold_(treshold)
+	, target_(target)
+{
+	// NOTHING
+}
+
+FilterDistance::~FilterDistance()
+{
+	// NOTHING
+}
+
+bool FilterDistance::ApplyFilter(const Sample& sample) const
+{
+	// check that sample position is inside obstacle radius and not too far from its plan
+	return (sample.GetPosition() - target_).norm() < treshold_;
+}
+

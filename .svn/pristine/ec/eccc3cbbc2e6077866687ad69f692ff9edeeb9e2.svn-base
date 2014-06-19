@@ -1,0 +1,18 @@
+<world>
+ <startpaused val="true"/>	
+  <robot type="0" samples="5000" x="0" y="0" z="0" rotx="0" roty="0" rotz="0" iDirx="1" iDiry="0" iDirz="0" gait="false" jointlimit="false" autorotate="false" 
+  autorotateleg="false" jumptotarget="false" drawsplines="false" drawEllipseAxes="false" drawEllipsoid="false" drawnormals="false" reachcom="false" rotatewithspline="true" speed ="0.1" planif="false">
+  </robot>
+  <camera x="7" y="0" z="0.5" rotx="180" roty="0" rotz="0" type="follow"/>
+  <light x="0" y="7" z="1" shadows="false"/>
+  <obj name=""/>
+  <obstacles offSet="true">
+	<color> 
+		<p0 r="1" g="1" b="1" t ="0"/>
+	</color>
+	<color> 
+		<p0 r="0.4" g="0.4" b="0.7" t ="1"/>
+	</color>
+	
+  </obstacles>
+</world>

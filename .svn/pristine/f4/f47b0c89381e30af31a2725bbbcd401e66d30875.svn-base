@@ -1,0 +1,104 @@
+
+#include "Jacobian.h"
+#include "Tree.h"
+#include "Joint.h"
+
+
+using namespace matrices;
+using namespace Eigen;
+
+Jacobian::Jacobian(const Tree& tree)
+{
+	// NOTHING
+}
+
+Jacobian::~Jacobian()
+{
+	//NOTHING
+}
+
+void Jacobian::Compute(const Tree& tree)
+{
+	computeInverse_ = true; computeProduct_ = true; computeProductInverse_ = true;
+	computeJacSVD_ = true; computeNullSpace_ = true;
+	jacobian_ = Eigen::MatrixXd(3,tree.GetNumJoint()-1); // à cause de son incrémentation débile
+	// Traverse this to find all end effectors
+	Vector3 temp;
+	Joint* n = tree.GetRoot();
+	while ( n ) {	
+		if ( n->IsEffector() )
+		{
+			int i = n->GetEffectorNum();
+			// Find all ancestors (they will usually all be joints)
+			// Set the corresponding entries in the Jacobian J
+			Joint* m = tree.GetParent(n);
+			while ( m ) {
+				int j = m->GetJointNum();
+				assert ( 0 <=i && i<tree.GetNumEffector() && 0<=j && j<tree.GetNumJoint() );
+				
+				temp = m->GetS();			// joint pos.
+				temp -= n->GetS();			// -(end effector pos. - joint pos.)
+				Vector3 tmp2 = temp.cross( m->GetW() );			// cross product with joint rotation axis
+				jacobian_.col(j-1) = tmp2;
+				m = tree.GetParent( m );
+			}
+		}
+		n = ( n->IsEffector() ? 0 : tree.GetSuccessor( n ) );
+	}
+}
+const Eigen::MatrixXd& Jacobian::GetJacobian()
+{
+	return jacobian_;
+}
+
+Eigen::MatrixXd& Jacobian::GetJacobianEdit()
+{
+	return jacobian_;
+}
+
+const Eigen::MatrixXd& Jacobian::GetJacobianInverse()
+{
+	if(computeInverse_)
+	{
+		computeNullSpace_ = false;
+		computeInverse_ = false;
+		//ComputeSVD();
+		//PseudoInverseSVD(jacobian_, svd_, jacobianInverse_);
+		jacobianInverse_ = jacobian_;
+		PseudoInverse(jacobianInverse_, Identitymin_, 1.f); // tmp while figuring out how to chose lambda
+	}
+	return jacobianInverse_;
+}
+
+const Eigen::MatrixXd& Jacobian::GetNullspace()
+{
+	if(computeNullSpace_)
+	{
+		// temp formalize svd
+		GetJacobianInverse();
+	}
+	return Identitymin_;
+}
+
+
+const Eigen::Matrix3d& Jacobian::GetJacobianProduct()
+{
+	if(computeProduct_)
+	{
+		computeProduct_ = false;
+		jacobianProduct_ = jacobian_ * jacobian_.transpose();
+	}
+	return jacobianProduct_;
+}
+
+const Eigen::Matrix3d& Jacobian::GetJacobianProductInverse()
+{
+	if(computeProductInverse_)
+	{
+		computeProductInverse_ = false;
+		Eigen::JacobiSVD<Eigen::Matrix3d> svd = Eigen::JacobiSVD<Eigen::Matrix3d>(jacobianProduct_, Eigen::ComputeFullU | Eigen::ComputeFullV);
+		PseudoInverseSVD(jacobianProduct_, svd, jacobianProductInverse_);
+	}
+	return jacobianProductInverse_;
+}
+

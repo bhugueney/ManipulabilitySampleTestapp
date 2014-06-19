@@ -1,0 +1,38 @@
+
+#ifndef _CLASS_DRAWSAMPLES
+#define _CLASS_DRAWSAMPLES
+
+#include "MatrixDefs.h"
+#include "DrawTree.h"
+#include "API/SampleVisitorI.h"
+#include <vector>
+
+namespace manip_core
+{
+	struct TreeI;
+	struct JointI;
+	struct RobotI;
+}
+
+class DrawSamples : public manip_core::SampleVisitorI {
+
+	typedef std::vector<DrawTree> T_DrawTree;
+	typedef std::vector<manip_core::TreeI*> T_Tree;
+
+public:
+	 DrawSamples(const manip_core::RobotI* /*robot*/, const manip_core::TreeI* /*tree*/);
+	~DrawSamples();
+
+public:
+	virtual void Visit(const manip_core::RobotI* /*robot*/, manip_core::TreeI* /*tree*/);
+
+public:
+	void Draw(const matrices::Matrix4& /*currentTransform*/, bool transparency = true)const;
+
+
+private:
+	T_DrawTree drawTrees_;
+	T_Tree trees_;
+}; // class DrawTree
+
+#endif //_CLASS_DRAWSAMPLES

@@ -1,0 +1,32 @@
+
+#ifndef _CLASS_TRAJECTORY
+#define _CLASS_TRAJECTORY
+
+#include "MatrixDefs.h"
+
+#include <list>
+
+class Trajectory
+{
+public:
+	typedef std::pair  <float, matrices::Matrix4>	P_TimePosition;
+	typedef std::list<P_TimePosition>				T_TimePositions;
+	typedef T_TimePositions::iterator				T_TimePositionsIT;
+	typedef T_TimePositions::const_iterator			T_TimePositionsCIT;
+
+public: // constructors / destructors
+	 Trajectory(); // todo direciton / trajectory
+	 Trajectory(const T_TimePositions& /*timePositions*/); // todo direciton / trajectory
+	~Trajectory();
+
+public: // actuators
+	bool AddCheckPoint(float /*time*/, const matrices::Matrix4& /*transform*/); // false is time is alreadyt marked
+
+public: // helpers
+	const T_TimePositions& GetTimePositions() const;
+
+private:
+	T_TimePositions timePositions_;
+};
+
+#endif //_CLASS_TRAJECTORY

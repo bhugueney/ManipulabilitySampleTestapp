@@ -1,0 +1,25 @@
+#include "ExactCubic.h"
+
+using namespace spline;
+
+
+CubicFunction::CubicFunction(const Point& a, const Point& b, const Point& c, const Point& d, const Real tBegin, const Real tEnd)
+	: a_(a), b_(b), c_(c), d_(d), tBegin_(tBegin), tEnd_(tEnd)
+{
+	// NOTHING
+}
+
+CubicFunction::~CubicFunction()
+{
+	// NOTHING
+}
+
+Point CubicFunction::Evaluate(const Real t) const
+{
+
+}
+
+void CubicFunction::Evaluate(const Real t, Point& Evaluate) const
+{
+
+}

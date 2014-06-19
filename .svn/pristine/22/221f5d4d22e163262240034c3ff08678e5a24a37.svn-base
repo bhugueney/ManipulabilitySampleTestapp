@@ -1,0 +1,62 @@
+
+#include "Intersection.h"
+#include "kinematic/Tree.h"
+#include "Obstacle.h"
+
+#include <math.h>
+#include <iostream>
+
+using namespace matrices;
+using namespace Eigen;
+
+Intersection::Intersection()
+{
+	// NOTHING
+}
+
+Intersection::~Intersection()
+{
+	// NOTHING
+}
+
+bool Intersection::Intersect(const Tree* pTree, const Obstacle& obstacle, Vector3& anInterPoint ) const
+{
+	// get center of the circle 
+	Vector3 center(0,0,0);
+	float distance = obstacle.Distance( pTree->GetPosition(), center );
+	MatrixXd center4 (4,1);
+	center4.block(0,0,3,1) = center;
+	center4(3) = 1;
+	float w, h;
+	w = obstacle.GetW(); h = obstacle.GetH();
+	// use this ? http://stackoverflow.com/a/402010
+	float bRad = pTree->GetBoundaryRadius();
+	if ( distance < bRad ) // obstacle plan in range
+	{
+		// go into rectangle plan to check what we want
+		float circleRadius = sqrt( bRad * bRad -  obstacle.GetD() * obstacle.GetD() );
+		MatrixXd centerR (4,1); centerR = obstacle.Basis() * center4;
+			std::cout << "Basis " << obstacle.Basis() << std::endl;
+			std::cout << "centerR " << centerR << std::endl;
+			std::cout << "center " << center << std::endl;
+			std::cout << "center4 " << center4 << std::endl;
+
+
+		double xc, yc;
+		xc = centerR(0); yc = centerR(1);
+		//if( ( ( xc > 0 && xc < w ) && ( yc > 0 && yc < h ) ) // is center inside obstacle ? -> take center
+		//{
+		//	anInterPoint = center;
+		//	return true;
+		//}
+
+		if( ( xc + circleRadius > 0 && xc - circleRadius < w ) && ( yc + circleRadius > 0 && yc - circleRadius < h ) ) // is center inside obstacle ? -> take center
+		{
+			anInterPoint = center;
+			std::cout << "InterPoint " << center << std::endl;
+			return true;
+		}
+
+	}
+	return false;
+}

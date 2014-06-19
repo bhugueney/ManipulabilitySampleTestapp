@@ -1,0 +1,117 @@
+<world>
+  <robot type="0" x="-8" y="1" z="3"/>
+  <obstacles>
+  
+	<obstacle> 
+		<p0 x="-7.5" y="6" z="2.5"/>
+		<p1 x="10" y="6" z="2.5"/>
+		<p2 x="10" y="-2" z="2.5"/>
+		<p3 x="-7.5" y="-2" z="2.5"/>
+	</obstacle>
+	<obstacle> 
+		<p0 x="-7" y="6" z="3.5"/>
+		<p1 x="10" y="6" z="3.5"/>
+		<p2 x="10" y="-2" z="3.5"/>
+		<p3 x="-7" y="-2" z="3.5"/>
+	</obstacle>
+	<prise> 
+		<p0 x="-7" y="0" z="4.5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="0" z="4.3"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="0.5" z="4"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="-0.5" z="4"/>
+	</prise>
+	<prise> 
+		<p0 x="-7" y="2" z="4.5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="3" z="4.3"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="1.5" z="4"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="3" z="4"/>
+	</prise>
+	
+	<prise> 
+		<p0 x="-7" y="0" z="5.5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="0" z="5.3"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="0.5" z="5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="-0.5" z="5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7" y="2" z="5.5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="3" z="5.3"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="1.5" z="5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="3" z="5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7" y="0" z="7.5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="0" z="7.3"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="0.5" z="7"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="-0.5" z="7"/>
+	</prise>
+	<prise> 
+		<p0 x="-7" y="2" z="7.5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="3" z="7.3"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="1.5" z="7"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="3" z="7"/>
+	</prise>
+	
+	
+	<prise> 
+		<p0 x="-7" y="0" z="9.5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="0" z="9.3"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="0.5" z="9"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="-0.5" z="9"/>
+	</prise>
+	<prise> 
+		<p0 x="-7" y="2" z="9.5"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="3" z="9.3"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="1.5" z="9"/>
+	</prise>
+	<prise> 
+		<p0 x="-7.1" y="3" z="9"/>
+	</prise>
+  </obstacles>
+</world>

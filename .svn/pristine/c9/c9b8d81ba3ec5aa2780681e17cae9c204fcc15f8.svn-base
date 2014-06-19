@@ -1,0 +1,723 @@
+#include "PostureSolver.h"
+
+#include "World.h"
+#include "ObstacleVisitor_ABC.h"
+#include "Obstacle.h"
+#include "Trajectory.h"
+#include "PostureCriteria_ABC.h"
+#include "kinematic/FilterDistanceObstacle.h"
+#include "kinematic/FilterDistance.h"
+#include "kinematic/SampleGenerator.h"
+#include "kinematic/Sample.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Robot.h"
+#include "kinematic/SupportPolygon.h"
+
+#include "kinematic/IKSolver.h"
+
+#include <math.h>
+#include <vector>
+#include <list>
+
+using namespace matrices;
+using namespace std;
+
+struct PosturePImpl
+{
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	PosturePImpl(const World& world)
+		: world_(world)
+		, currentDir_(matrices::unitx)
+		, ikSolver_()
+		, currentDirWeight_(0)
+	{
+		//NOTHING
+	}
+	~PosturePImpl()
+	{
+		for(PostureSolver::T_RobotsIT it = postures_.begin(); it != postures_.end(); ++it)
+		{
+			delete((*it).second);
+		}
+		for(T_CriteriaIT it = toeOffs_.begin(); it != toeOffs_.end(); ++it)
+		{
+			delete(*it);
+		}
+		for(T_CriteriaIT it = toeOns_.begin() ; it != toeOns_.end() ; ++it)
+		{
+			delete(*it);
+		}
+	}
+	
+	typedef std::list<PostureCreatedListener_ABC*>	T_Listener;
+	typedef T_Listener::iterator					T_ListenerIT;
+	typedef T_Listener::const_iterator				T_ListenerCIT;
+
+	typedef std::list<PostureCriteria_ABC*> T_Criteria;
+	typedef T_Criteria::iterator			T_CriteriaIT;
+	typedef T_Criteria::const_iterator		T_CriteriaCIT;
+
+	void WarnListeners(NUMBER time, Robot* robot)
+	{
+		for(T_ListenerIT it = listeners_.begin(); it != listeners_.end(); ++it)
+		{
+			(*it)->OnPostureCreated(time, robot);
+		}
+	}
+
+	IKSolver ikSolver_;
+	const World& world_;
+	Vector3 currentDir_;
+	NUMBER currentDirWeight_;
+	PostureSolver::T_Robots postures_;
+	T_Listener listeners_;
+	T_Criteria toeOffs_;
+	T_Criteria toeOns_;
+};
+
+struct HandleLockedVisitor : SampleGeneratorVisitor_ABC
+{
+	HandleLockedVisitor(const Vector3& currentDir)
+		: currentBest_(0)
+		, currentDir_(currentDir)
+		, currentBestManip_(-100000)
+	{
+		// NOTHING
+	}
+
+	~HandleLockedVisitor()
+	{
+		// NOTHING
+	}
+
+	virtual void Visit(const Robot& robot, /*const*/ Tree& tree, Sample& sample)
+	{
+		//TODO Manipulability and other constraints here
+		NUMBER manip = sample.forceManipulabiliy(currentDir_);
+		if(manip > currentBestManip_)
+		{
+			currentBest_ = &sample;
+			currentBestManip_ = manip;
+		}
+	}
+
+	const Vector3 currentDir_;
+	NUMBER currentBestManip_;
+	Sample* currentBest_;
+};
+
+struct LockVisitor : SampleGeneratorVisitor_ABC
+{
+	LockVisitor(const Vector3& currentDir)
+		: currentBest_(0)
+		, currentDir_(currentDir)
+		, currentBestManip_(-100000)
+	{
+		// NOTHING
+	}
+
+	~LockVisitor()
+	{
+		// NOTHING
+	}
+
+	bool KeepsBalance(const Robot& robot, Tree& tree, const Vector3& target) const
+	{
+		// TODO this is ugly 
+		bool wasLocked = tree.IsLocked();
+		Vector3 oldtarget = tree.GetTarget();
+
+		tree.LockTarget(target);
+		Vector3 com = robot.ComputeCom();
+		SupportPolygon support(robot);
+		
+		if(wasLocked)
+		{
+			tree.LockTarget(oldtarget);
+		}
+		else
+		{
+			tree.UnLockTarget();		
+		}
+		return support.Contains(com);
+	}
+
+	virtual void Visit(const Robot& robot, /*const*/ Tree& tree, Sample& sample)
+	{
+		// remove posture that is not enriching sustentation polygon
+		if(KeepsBalance(robot, tree, matrix4TimesVect3(robot.ToWorldCoordinates(), sample.GetPosition() + tree.GetPosition())))
+		//if(true)
+		{
+			//TODO Manipulability and other constraints here
+			NUMBER manip = sample.forceManipulabiliy(currentDir_);
+			if(manip > currentBestManip_)
+			{
+				currentBest_ = &sample;
+				currentBestManip_ = manip;
+			}
+		}
+	}
+
+	const Vector3 currentDir_;
+	NUMBER currentBestManip_;
+	Sample* currentBest_;
+};
+
+struct ReachableObstaclesContainer : public ObstacleVisitor_ABC
+{
+	ReachableObstaclesContainer(const World& world, const Tree& tree, const Robot& robot)
+		: ObstacleVisitor_ABC()
+		, world_(world)
+		, tree_ (tree)
+		, robot_(robot)
+	{
+		// NOTHING
+	}
+
+	~ReachableObstaclesContainer()
+	{
+		// NOTHING
+	}
+
+	virtual void Visit(const Obstacle& obstacle)
+	{
+		if(world_.IsReachable(robot_, tree_, obstacle))
+			obstacles_.push_back(&obstacle);
+	}
+
+	typedef std::vector<const Obstacle*> T_Obstacles;
+	typedef T_Obstacles::const_iterator T_ObstaclesCIT;
+
+	T_Obstacles obstacles_;
+	const World& world_;
+	const Tree&  tree_ ;
+	const Robot& robot_;
+};
+
+
+PostureSolver::PostureSolver(const World& world)
+	: pImpl_(new PosturePImpl(world))
+{
+	//NOTHING
+}
+
+PostureSolver::~PostureSolver()
+{
+	// NOTHING
+}
+
+bool PostureSolver::MustLift(const Robot& robot, const Tree& tree) const
+{
+	bool off = false;
+	for(PosturePImpl::T_CriteriaCIT it2 = pImpl_->toeOffs_.begin(); (!off) && it2 != pImpl_->toeOffs_.end(); ++it2)
+	{
+		off = (*it2)->Evaluate(pImpl_->world_, robot, tree);
+	}
+	return off;
+}
+
+Tree* PostureSolver::GetClosestToCom(const Robot& robot) const
+{
+	Vector3 com = robot.ComputeCom(); 
+	com = matrix4TimesVect3(robot.ToWorldCoordinates(), com);
+	com(2) =0;
+	const Robot::T_Tree& trees = robot.GetTrees();
+	NUMBER min = 10000; Tree* res(0);
+	for(Robot::T_TreeCIT it = trees.begin(); it != trees.end(); ++it)
+	{
+		Vector3 target = (*it)->GetPosition();
+		target = matrix4TimesVect3(robot.ToWorldCoordinates(), target); target(2) = 0;
+		NUMBER dist = (target - com).norm();
+		if( dist < min && ((*it)->GetTarget()).x() < com.x() + (pImpl_->currentDir_ * pImpl_->currentDirWeight_).x())
+		{
+			min = dist;
+			res = *it;
+		}
+	}
+	return res;
+}
+
+bool PostureSolver::BreakBalance(const Robot& robot, Tree& tree) const
+{
+	// TODO this is ugly 
+	Vector3 target = tree.GetTarget();
+	tree.UnLockTarget();
+	Vector3 com = robot.ComputeCom();
+	SupportPolygon support(robot);
+	tree.LockTarget(target);
+	return !support.Contains(com);
+	return false;
+}
+
+bool PostureSolver::LockTree(Robot& robot, Tree& tree) const
+{
+	SampleGenerator* sg = SampleGenerator::GetInstance();
+	// Collecting reachable obstacles
+	ReachableObstaclesContainer obstacles(pImpl_->world_, tree, robot);
+	pImpl_->world_.Accept(obstacles);
+	for(ReachableObstaclesContainer::T_ObstaclesCIT it = obstacles.obstacles_.begin(); it!= obstacles.obstacles_.end(); ++it)
+	{
+		FilterDistanceObstacle filter(0.1, tree, (*(*it)), robot, matrices::matrix4TimesVect3(robot.ToRobotCoordinates(), pImpl_->currentDir_));
+		LockVisitor visitor(pImpl_->currentDir_);
+		sg->Request(robot, tree, visitor, filter);
+		if(visitor.currentBest_)
+		{
+			visitor.currentBest_->LoadIntoTree(tree);
+			tree.Compute();
+			// sample needs to be replaced regarding tree root position,
+			// compute exact position on obstacle( clostest)
+			Vector3 samplePosition = matrices::matrix4TimesVect3(robot.ToWorldCoordinates(), tree.GetPosition() + visitor.currentBest_->GetPosition());
+			Vector3 exactPosition = samplePosition;
+		//	pImpl_->world_.GetTarget(robot, tree, samplePosition, exactPosition);
+			Vector3 exactRobotPosition = matrices::matrix4TimesVect3(robot.ToRobotCoordinates(), exactPosition);
+			// now let's go there with ik
+			//pImpl_->IkToTarget(tree, exactRobotPosition);
+			tree.LockTarget(exactPosition);
+			//tree.LockTarget(matrices::matrix4TimesVect3(robot.ToWorldCoordinates(), tree.GetPosition() + pImpl_->currentBest_->GetPosition()));
+		}
+		else
+		{
+			return false;
+		}
+	}
+	return true;
+}
+
+bool PostureSolver::HandleLockedTree(Robot& robot, Tree& tree)
+{
+	
+	FilterDistance filter(0.1, tree, matrices::matrix4TimesVect3(robot.ToRobotCoordinates(), tree.GetTarget()));
+	SampleGenerator* sg = SampleGenerator::GetInstance();
+	HandleLockedVisitor visitor(pImpl_->currentDir_);
+	sg->Request(robot, tree, visitor, filter);
+	if(visitor.currentBest_)
+	{
+		visitor.currentBest_->LoadIntoTree(tree);
+		tree.Compute();
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+	//// now let's go there with ik
+	//pImpl_->IkToTarget(tree, exactRobotPosition);
+	// Collecting reachable obstacles
+}
+
+bool PostureSolver::HandleExitingCom(Robot& robot, SupportPolygon& support, const Vector3& com)
+{
+	Tree::TREE_ID id = support.ComputeTreeToLift(com);
+	assert(id >= 0);
+	// TODO reequilibrate this motafu
+	robot.GetTree(id)->UnLockTarget();
+
+	Vector3 com2 = robot.ComputeCom();
+	SupportPolygon support2(robot);
+	Vector3 correction;
+	if(!support2.Contains(com, correction))
+	{
+		robot.Translate(correction);
+	}
+	return true;
+}
+
+bool PostureSolver::HandleExitingCom(Robot& robot)
+{
+	// TODO reequilibrate this motafu
+	Vector3 com2 = robot.ComputeCom();
+	SupportPolygon support2(robot);
+	Vector3 correction;
+	if(!support2.Contains(com2, correction))
+	{
+		robot.Translate(correction);
+	}
+	return true;
+}
+
+Robot* PostureSolver::CreatePosture(const Robot& robot, NUMBER time, const matrices::Matrix4& transform, bool& changed)
+{
+	changed = false; // will be true if posture truly different from previous
+	Robot* res = robot.Clone();
+	res->SetPosOri(transform);
+
+	const Robot::T_Tree& trees = res->GetTrees();
+	Robot::T_Tree updateTrees;
+	bool foundOneAction = false;
+	// is robot stable
+	Vector3 com = res->ComputeCom();
+	SupportPolygon support(*res);
+	bool robotStable = support.Contains(com); //never stable ???
+	bool robotWillBeStable = support.Contains(com + pImpl_->currentDir_ * 0.1); //never stable ???
+	//bool robotStable = true;
+	// remove posture that is not enriching sustentation polygon
+	Tree* actionTree(0);
+	// handle lifted before trees first
+	for(Robot::T_TreeCIT it = trees.begin(); it != trees.end(); ++it)
+	{
+		Tree* tree = (*it);
+		if(tree->IsLocked())
+		{
+			// first check whether we should not lift this tree
+			//lift tree
+			if(MustLift(*res, *tree))
+			{
+				if((!robotStable) || foundOneAction || BreakBalance(*res, *tree))
+				{
+					return 0;
+				}
+				actionTree = tree;
+				foundOneAction = true;
+			}
+			// we won't lift this tree, so let's just anchor it to its previous prosition
+			else
+			{
+				updateTrees.push_back(tree);
+			}
+		}
+		// put foot down if balance is broken
+		else if(!robotStable)
+		{
+			// TODO what if several candidates?
+			actionTree = tree;
+		}
+	}
+	// just one or 0 changes to perform, sweet !
+	if(actionTree)
+	{
+		changed = true;
+		if(actionTree->IsLocked())
+		{
+			actionTree->UnLockTarget();
+		}
+		else
+		{
+			//if(!LockTree(*res, *actionTree))
+			//{
+			//	changed = false;
+			//	// if we can't ang not stable, go back
+			//	if(!robotStable)
+			//	{
+			//		return 0;
+			//	}
+			//}
+			LockTree(*res, *actionTree);
+			com = res->ComputeCom();
+			SupportPolygon support2(*res);
+			robotStable = support2.Contains(com);
+		}
+	}
+	// in this case, all feet are down ( no action to do means no foot up)
+	else if(!robotStable)
+	{
+		// rollback to previous position and lift feet that will help us find equilibrium
+		res->SetPosOri(robot.ToWorldCoordinates());
+		robotStable = HandleExitingCom(*res, support, com);
+		changed = robotStable;
+	}
+	if(robotStable)
+	{
+		for(Robot::T_TreeCIT it = updateTrees.begin(); it != updateTrees.end(); ++it)
+		{
+			if((*it)->IsLocked())
+			HandleLockedTree(*res, *(*it));
+		}
+		return res;
+	}
+	else
+	{
+		return 0;
+	}
+}
+
+Robot*	PostureSolver::CreateStillPosture (const Robot& robot, NUMBER time, const matrices::Matrix4& transform)
+{
+	Robot* res = robot.Clone();
+	res->SetPosOri(transform);
+	const Robot::T_Tree& trees = res->GetTrees();
+	Tree* furthest = 0;
+	NUMBER minX = 100000000;
+	// anything up ? we put it down
+	bool done = false;
+	for(Robot::T_TreeCIT it = trees.begin(); it != trees.end() &! done; ++it)
+	{
+		Tree* tree = (*it);
+		if(!tree->IsLocked())
+		//{
+		//	Vector3 target = matrix4TimesVect3(res->ToRobotCoordinates(), tree->GetTarget());
+		//	if(target.x() < minX) // TODO compare to direction
+		//	{
+		//		minX = target.x();
+		//		furthest = tree;
+		//	}
+		//}
+		//// put foot down if up no matter what and leave
+		//else
+		{
+			done = LockTree(*res, *tree);
+			if(!done)
+			{
+				bool tg = false; //"WTF"
+			}
+		}
+	}
+	// else lift furthest
+	if(!done)
+	{
+		Tree* tree = GetClosestToCom(*res);
+		if(tree)
+		{
+			tree->UnLockTarget();
+		} // and there s no else !
+	}
+	for(Robot::T_TreeCIT it = trees.begin(); it != trees.end(); ++it)
+	{
+		Tree* tree = (*it);
+		if(tree->IsLocked())
+		{
+			HandleLockedTree(*res, *tree);
+		}
+	}
+	return res;
+}
+
+
+const PostureSolver::T_Robots& PostureSolver::CreatePostures(const Robot& previousTransform, Trajectory& trajectory)
+{
+	Robot* previousPosture(0);
+	const Trajectory::T_TimePositions& timepos = trajectory.GetTimePositions();
+	Matrix3 rotation;
+	Matrix4 oldTransformation;
+	Matrix4 tranformation = previousTransform.ToWorldCoordinates();
+	Vector3 oldPosition = tranformation.block(0,3,3,1);
+	Vector3 oldDirection(1, 0, 0);
+	float currentTimeStep = 0.f;
+	previousPosture = previousTransform.Clone();
+
+	// first posture locks everything
+	Robot::T_Tree trees = previousPosture->GetTrees();
+	for(Robot::T_TreeIT treeit = trees.begin(); treeit != trees.end(); ++treeit)
+	{
+		Tree* tree = (*treeit);
+		if(!tree->IsLocked())
+		{
+			LockTree(*previousPosture, *tree);
+		}
+		else
+		{
+			HandleLockedTree(*previousPosture, *tree);
+		}
+	}
+
+	//current pos as first index
+	trajectory.AddCheckPoint(0.f, oldPosition);
+	Trajectory::T_TimePositionsCIT it = timepos.begin();
+	++it;
+	for(; it != timepos.end(); ++it)
+	{
+		pImpl_->currentDir_ = ((*it).second - oldPosition);		
+		if(pImpl_->currentDir_.norm() != 0.)
+		{
+			pImpl_->currentDir_.normalize();
+		}
+		else
+		{
+			break;
+		}
+		oldTransformation = tranformation;
+
+		//compute transformation
+		matrices::GetRotationMatrix(oldDirection, pImpl_->currentDir_, rotation);
+		tranformation.block(0,0,3,3) = tranformation.block(0,0,3,3) * rotation; 
+		tranformation.block(0,3,3,1) = (*it).second; 
+		//End compute transformation
+
+		bool changed = false; // has new posture changed in terms of contact points ?
+		Robot* newPosture = CreatePosture(*previousPosture, (*it).first, tranformation, changed);
+		if(newPosture) // only one contact was changed ? ok!
+		{
+			if(!changed &! (pImpl_->postures_.empty())) // new Posture is different
+			{
+				pImpl_->postures_.pop_back();
+			}
+			currentTimeStep = (*it).first;
+			pImpl_->postures_.push_back(std::make_pair(currentTimeStep, newPosture));
+			previousPosture = newPosture;
+			// robot posture can be changed by optimization
+			tranformation = newPosture->ToWorldCoordinates();
+			oldPosition = tranformation.block(0,0,3,1);
+			oldDirection = pImpl_->currentDir_;
+		}
+		else // let's reduce gap between wayPoints by adding one between trajectories
+		{
+			tranformation = oldTransformation; //pImpl_->postures_.back().second->ToWorldCoordinates();
+			pImpl_->currentDir_ = oldDirection;
+			if(!trajectory.AddWayPoint(--it)) // it placed on the new waypoint
+			{
+//				break;
+
+				//we're trapped. Do the best we can without moving
+				pImpl_->currentDirWeight_ = 0;
+				currentTimeStep = currentTimeStep +0.01f;
+				newPosture = CreateStillPosture(*previousPosture, currentTimeStep, tranformation);
+				pImpl_->postures_.push_back(std::make_pair(currentTimeStep, newPosture));
+				previousPosture = newPosture;
+				++it; // skip next posture
+			}
+			else
+			{
+				it--; // because it ll be increased in loop
+			}
+		}
+	}
+	for(PostureSolver::T_RobotsIT it = pImpl_->postures_.begin(); it != pImpl_->postures_.end(); ++it)
+	{
+		pImpl_->WarnListeners((*it).first, (*it).second);
+	}
+
+	return pImpl_->postures_;
+}
+
+//const PostureSolver::T_Robots& PostureSolver::CreatePostures(const Robot& previousTransform, Trajectory& trajectory)
+//{
+//	Robot* previousPosture(0);
+//	const Trajectory::T_TimePositions& timepos = trajectory.GetTimePositions();
+//	Vector3 oldPosition;
+//	Vector3 oldDirection;
+//	Matrix3 rotation;
+//	Matrix4 tranformation = Matrix4::Identity();
+//	bool changed = false; // has new posture changed in terms of contact points ?
+//	if(timepos.size() > 1)
+//	{
+//		//retrieving first trajectory
+//		Trajectory::T_TimePositionsCIT it = timepos.begin();
+//		Trajectory::T_TimePositionsCIT it2 = it; ++it2;
+//		oldPosition = (*it).second;
+//		// rotate robot according to trajectory modification; (assumes it s facing correctly at first, in X dir)
+//		oldDirection = pImpl_->currentDir_;
+//		pImpl_->currentDir_ = ((*it2).second - oldPosition);
+//		pImpl_->currentDirWeight_ = pImpl_->currentDir_.norm();
+//		pImpl_->currentDir_.normalize();
+//		matrices::GetRotationMatrix(oldDirection, pImpl_->currentDir_, rotation);
+//		tranformation.block(0,0,3,3) = tranformation.block(0,0,3,3) * rotation; 
+//		tranformation.block(0,3,3,1) = oldPosition; 
+//		previousPosture = CreatePosture(previousTransform, (*it).first, tranformation, changed);
+//		pImpl_->postures_.push_back(std::make_pair((*it).first, previousPosture));
+//		// first posture locks everything
+//		Robot::T_Tree trees = previousPosture->GetTrees();
+//		for(Robot::T_TreeIT treeit = trees.begin(); treeit != trees.end(); ++treeit)
+//		{
+//			Tree* tree = (*treeit);
+//			if(!tree->IsLocked())
+//			{
+//				LockTree(*previousPosture, *tree);
+//			}
+//		}
+//		++it;
+//		for(; it != timepos.end(); ++it)
+//		{
+//			++it2;
+//			if(it2 != timepos.end())
+//			{
+//				oldDirection = pImpl_->currentDir_;
+//				pImpl_->currentDir_ = ((*it2).second - oldPosition);
+//				if(pImpl_->currentDir_.norm() != 0.)
+//				{
+//					pImpl_->currentDir_.normalize();
+//				}
+//				else
+//				{
+//					break;
+//				}
+//				oldPosition = (*it).second;
+//				// compute the other way around to avoir inverting
+//				//matrices::GetRotationMatrix(pImpl_->currentDir_, oldDirection , rotation);
+//				matrices::GetRotationMatrix(oldDirection, pImpl_->currentDir_, rotation);
+//				tranformation.block(0,0,3,3) = rotation * tranformation.block(0,0,3,3); 
+//				tranformation.block(0,3,3,1) = oldPosition; 
+//			}
+//			Robot* newPosture = CreatePosture(*previousPosture, (*it).first, tranformation, changed);
+//			if(newPosture) // only one contact was changed ? ok!
+//			{
+//				if(!changed) // new Posture is different
+//				{
+//					pImpl_->postures_.pop_back();
+//				}
+//				pImpl_->postures_.push_back(std::make_pair((*it).first, newPosture));
+//				previousPosture = newPosture;
+//			}
+//			else // let's reduce gap between wayPoints by adding one between trajectories
+//			{
+//				oldDirection = pImpl_->currentDir_;
+//				oldPosition = pImpl_->postures_.back().second->ToWorldCoordinates().block(0,3,3,1);
+//				tranformation = pImpl_->postures_.back().second->ToWorldCoordinates();
+//				if(!trajectory.AddWayPoint(--it)) // it placed on the new waypoint
+//				{
+//					//we're trapped. Do the best we can without moving
+//					pImpl_->currentDirWeight_ = 0;
+//					//oldPosition = tranformation.block(0,3,3,1);
+//					newPosture = CreateStillPosture(*previousPosture, pImpl_->postures_.back().first + 0.01f, tranformation);
+//					pImpl_->postures_.push_back(std::make_pair((*it).first, newPosture));
+//					previousPosture = newPosture;
+//					++it; // skip next posture
+//					it2 = it;
+//					++it2;
+//				}
+//				else
+//				{
+//					it--; // because it ll be increased in loop
+//					it2 = it;
+//					++it2;
+//				}
+//			}
+//		}
+//	}
+//	for(PostureSolver::T_RobotsIT it = pImpl_->postures_.begin(); it != pImpl_->postures_.end(); ++it)
+//	{
+//		pImpl_->WarnListeners((*it).first, (*it).second);
+//	}
+//
+//	return pImpl_->postures_;
+//}
+
+bool PostureSolver::HasChanged(const Robot& robot1, const Robot& robot2)
+{
+	const Robot::T_Tree& trees1 = robot1.GetTrees();
+	const Robot::T_Tree& trees2 = robot2.GetTrees();
+	for(Robot::T_TreeCIT it1 = trees1.begin(); it1!= trees1.end(); ++it1)
+	{
+		if((*it1)->IsLocked() != robot2.GetTree((*it1)->GetId())->IsLocked())
+		{
+			return true;
+		}
+	}
+	return false;
+}
+
+
+void PostureSolver::RegisterPostureListener(PostureCreatedListener_ABC& listener)
+{
+	pImpl_->listeners_.push_back(&listener);
+	for(PostureSolver::T_RobotsIT it = pImpl_->postures_.begin(); it != pImpl_->postures_.end(); ++it)
+	{
+		listener.OnPostureCreated((*it).first, (*it).second);
+	}
+}
+
+bool PostureSolver::UnregisterPostureListener(const PostureCreatedListener_ABC& listener)
+{
+	//TODO
+	return false;
+}
+
+void PostureSolver::AddToeOffCriteria(PostureCriteria_ABC* criteria)
+{
+	assert(criteria);
+	pImpl_->toeOffs_.push_back(criteria);
+}
+
+void PostureSolver::AddToeOnCriteria(PostureCriteria_ABC* criteria)
+{
+	assert(criteria);
+	pImpl_->toeOns_.push_back(criteria);
+}

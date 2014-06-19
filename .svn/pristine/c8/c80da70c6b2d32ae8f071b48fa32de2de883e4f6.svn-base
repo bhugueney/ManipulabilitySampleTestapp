@@ -1,0 +1,145 @@
+
+#include "TrajectoryHandler.h"
+
+#include "kinematic/Robot.h"
+#include "kinematic/Tree.h"
+#include "world/Obstacle.h"
+#include "world/ObstacleVisitor_ABC.h"
+#include "world/Intersection.h"
+
+using namespace matrices;
+
+struct ReachableObstacles : public ObstacleVisitor_ABC
+{
+	ReachableObstacles(const World& world, const Tree& tree, const Robot& robot)
+		: ObstacleVisitor_ABC()
+		, world_(world)
+		, tree_ (tree)
+		, robot_(robot)
+	{
+		world.Accept(*this);
+	}
+
+	~ReachableObstacles()
+	{
+		// NOTHING
+	}
+
+	virtual void Visit(const Obstacle& obstacle)
+	{
+		if(world_.IsReachable(robot_, tree_, obstacle))
+			obstacles_.push_back(&obstacle);
+	}
+
+	typedef std::vector<const Obstacle*>	T_Obstacles;
+	typedef T_Obstacles::const_iterator		T_ObstaclesCIT;
+	typedef T_Obstacles::iterator			T_ObstaclesIT;
+
+	T_Obstacles obstacles_;
+	const World& world_;
+	const Tree&  tree_ ;
+	const Robot& robot_;
+};
+
+TrajectoryHandler::TrajectoryHandler(const World& world)
+	: world_(world)
+{
+	// TODO
+}
+
+TrajectoryHandler::~TrajectoryHandler()
+{
+	// NOTHING
+}
+
+
+#include <list>
+
+
+namespace
+{
+
+	typedef std::list<Vector3, Eigen::aligned_allocator<Vector3>>	T_Waypoint;
+	typedef T_Waypoint::const_iterator								CIT_Waypoint;
+	typedef T_Waypoint::iterator									IT_Waypoint;
+
+	 Vector3 ComputeNewWayPoint(const matrices::Matrix4& mat, const Intersection& intersection, const Tree& current, const Tree& estimated, const Obstacle& obstacle, 
+		const Vector3& treePos, const Vector3& from, const Vector3& to)
+	{
+		// If there is a collision, it necesseraly means that one of the trees intersects with the plan.
+		// Either the current or the targeted.
+		// Assuming that, we consider this point to compute the closest point in the obstacle
+		// and this will be our next waypoint ( with a small offset of course )
+		Vector3 midPoint; // = obstacle.Distance(from,
+		if(!intersection.IntersectPlane(current, obstacle, midPoint))
+		{
+			if(!intersection.IntersectPlane(estimated, obstacle, midPoint))
+			{
+				assert (false);
+			}
+		}
+		//TODO
+		midPoint = matrices::matrix4TimesVect3(mat, midPoint);
+		return midPoint;
+	}
+
+	void ComputeCollisionFreePath(
+		const matrices::Matrix4& mat, const Tree& current, const Tree& estimated,
+		T_Waypoint& waypoints, IT_Waypoint it1, IT_Waypoint it2,
+		const Obstacle& obstacle, const Obstacle& plane, const Vector3& treePos)
+	{
+		Intersection intersection;
+		if(intersection.Intersect(*it1, *it2, obstacle))
+		{
+			Vector3 midPoint = ComputeNewWayPoint(mat, intersection, current, estimated, plane, treePos, *it1, midPoint);
+			IT_Waypoint itMid = waypoints.insert(it2, midPoint);
+			/*ComputeCollisionFreePath(mat, current, estimated, waypoints, it1, itMid, obstacle, plane, treePos);
+			ComputeCollisionFreePath(mat, current, estimated, waypoints, itMid, it2, obstacle, plane, treePos);*/
+		}
+	}
+
+	spline::ExactCubic* MakeSpline(T_Waypoint& waypoints)
+	{
+		// timeline based on length(1)  
+		spline::T_Waypoint splinePoints;
+		Vector3& previous(*(waypoints.begin()));
+		/*float totalDistance = 0;
+		for(CIT_Waypoint it = waypoints.begin(); it!= waypoints.end(); ++it)
+		{
+			totalDistance += (*it - previous).norm();
+		}*/
+		float t = 0;
+		previous = *(waypoints.begin());
+		for(CIT_Waypoint it = waypoints.begin(); it!= waypoints.end(); ++it)
+		{
+			t += (*it - previous).norm(); // / totalDistance;
+			splinePoints.push_back(std::make_pair(t,*it));
+		}
+		return new spline::ExactCubic(splinePoints);
+	}
+}
+
+spline::ExactCubic* TrajectoryHandler::ComputeTrajectory(const Robot& robot, const Tree& current, const Tree& estimated, const Vector3& target)
+{
+	// Real world target Position
+	Vector3 from = matrices::matrix4TimesVect3(robot.ToWorldCoordinates(), current.GetEffectorPosition(current.GetNumEffector()-1));
+	// Real world tree Position
+	Vector3 treePos = matrices::matrix4TimesVect3(robot.ToWorldCoordinates(), current.GetPosition());
+	ReachableObstacles reachableObstacles(world_, current, robot);
+	T_Waypoint waypoints;
+	IT_Waypoint it1 = waypoints.insert(waypoints.end(), from);
+	IT_Waypoint it2 = waypoints.insert(waypoints.end(), target);
+	for(ReachableObstacles::T_ObstaclesCIT it = reachableObstacles.obstacles_.begin(); it != reachableObstacles.obstacles_.end(); ++it)
+	{
+		matrices::Matrix4 mat = robot.ToRobotCoordinates();
+		// create obstacle with good coordinates
+		Obstacle obs(	matrices::matrix4TimesVect3(mat, (*it)->GetP1()),
+						matrices::matrix4TimesVect3(mat, (*it)->GetP2()),
+						matrices::matrix4TimesVect3(mat, (*it)->GetP3()),
+						matrices::matrix4TimesVect3(mat, (*it)->GetP4()));
+		ComputeCollisionFreePath(robot.ToWorldCoordinates(), current, estimated, waypoints, it1, it2, **it, obs, treePos);
+	}
+	return MakeSpline(waypoints);
+}
+
+

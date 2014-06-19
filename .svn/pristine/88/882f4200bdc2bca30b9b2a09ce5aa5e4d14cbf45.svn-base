@@ -1,0 +1,142 @@
+#include "Simulation.h"
+#include "AutoRotate.h"
+#include "RootTrajectory.h"
+#include "WorldParser/WorldParser.h"
+
+#include <time.h>
+
+using namespace manip_core;
+
+Simulation* Simulation::instance = 0;
+
+Simulation::Simulation()
+	: manager_()
+	, simpParams_()
+	, pRobot(0)
+	, timerHandler_()
+	, postureManager_(manager_.GetPostureManager())
+	, motionHandler_(manager_)
+	, drawManager_(manager_)
+{
+	srand((unsigned int)(time(0))); //Init Random generation
+	// TODO
+}
+
+Simulation::~Simulation()
+{
+	// TODO
+	for(std::vector<TimerHandled_ABC*>::const_iterator it =managedTimeListeners_.begin(); it != managedTimeListeners_.end(); ++ it)
+	{
+		delete *it;
+	}
+	delete postureManager_;
+}
+
+namespace simspace
+{
+	void start()
+	{
+		Simulation* sim = Simulation::GetInstance();
+		sim->simpParams_.GetCamera()->Reset();
+		sim->simpParams_.GetCamera()->Update();
+	}
+
+	void simLoop(int pause)
+	{
+		Simulation* sim = Simulation::GetInstance();
+		sim->Update();
+		sim->Draw();
+	}
+}
+
+void Simulation::Start(int argc, char *argv[])
+{
+	srand((unsigned int)(time(0))); //Init Random generation
+	//init robot
+	
+	WorldParser parser;
+	std::string filename;
+	
+	if(argc > 1)
+	{
+		filename = std::string(argv[1]);
+	}
+	else
+	{
+		filename = std::string("../world/worldTest.xml");
+	}
+	
+	
+	parser.CreateWorld(filename);
+	//simpParams_.buildWorld();
+
+	if(simpParams_.angleValues_.size() > 0)
+	{
+		pRobot = manager_.CreateRobot(simpParams_.robotType_, simpParams_.robotBasis_, simpParams_.angleValues_);
+	}
+	else
+	{
+		pRobot = manager_.CreateRobot(simpParams_.robotType_, simpParams_.robotBasis_);
+	}
+	dRobot = new DrawRobot(pRobot);
+	postureManager_->SetJumpToTarget(simpParams_.jumpToTarget_);
+	postureManager_->InitSamples(pRobot,simpParams_.nbSamples_);
+
+
+    simpParams_.fn_.version = DS_VERSION;
+    simpParams_.fn_.start   = &simspace::start;
+    simpParams_.fn_.step    = &simspace::simLoop;
+	simpParams_.fn_.command = simpParams_.command;
+    simpParams_.fn_.stop    = 0;
+
+	if(simpParams_.autorotate_) // before motion handler !
+	{
+		TimerHandled_ABC* listener = new AutoRotate(matrices::Vector3(0,0,1));
+		managedTimeListeners_.push_back(listener);
+		timerHandler_.Register(listener);
+	}
+	else if(simpParams_.autorotateleg_) // before motion handler !
+	{
+		TimerHandled_ABC* listener = new AutoRotateLeg(matrices::Vector3(0,0,1));
+		managedTimeListeners_.push_back(listener);
+		timerHandler_.Register(listener);
+	}
+	if(simpParams_.rootTrajectory_) // before motion handler !
+	{
+		TimerHandled_ABC* listener = new RootTrajectory(simpParams_.rootSpline);
+		managedTimeListeners_.push_back(listener);
+		timerHandler_.Register(listener);
+	}
+	timerHandler_.Register(&motionHandler_);
+	timerHandler_.Start();
+    dsSimulationLoop (argc,argv,1280,720, &simpParams_.fn_);
+}
+
+void Simulation::Update()
+{
+	timerHandler_.Update();
+	timerHandler_.GetTimer().Stop();
+	simpParams_.GetCamera()->Update();
+	if(simpParams_.inputHandler_)
+	{
+		simpParams_.inputHandler_->Update();
+	}
+	timerHandler_.GetTimer().Start();
+}
+
+void Simulation::Draw()
+{
+	drawManager_.Draw();
+	dRobot->Draw();
+}
+
+void Simulation::Reset()
+{
+	delete dRobot;
+	delete pRobot;
+	pRobot = manager_.CreateRobot(simpParams_.robotType_, simpParams_.robotBasis_, simpParams_.angleValues_);
+	dRobot = new DrawRobot(pRobot);
+	simpParams_.GetCamera()->Reset();
+	motionHandler_.Reset();
+	timerHandler_.GetTimer().Reset();
+}

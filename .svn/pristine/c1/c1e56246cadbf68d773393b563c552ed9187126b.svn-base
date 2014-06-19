@@ -1,0 +1,153 @@
+
+#include "Jacobian.h"
+#include "Tree.h"
+#include "Joint.h"
+
+
+using namespace matrices;
+using namespace Eigen;
+
+Jacobian::Jacobian(const Tree& tree)
+{
+	Compute(tree);
+}
+
+Jacobian::~Jacobian()
+{
+	//NOTHING
+}
+
+void Jacobian::SetJacobian(const Eigen::MatrixXd jacobian)
+{
+	jacobian_ = jacobian;
+	Invalidate();
+}
+
+void Jacobian::Invalidate()
+{
+	computeInverse_ = true; computeProduct_ = true; computeProductInverse_ = true;
+	computeJacSVD_ = true; computeNullSpace_ = true;
+}
+
+void Jacobian::Compute(const Tree& tree)
+{
+	Invalidate();
+	jacobian_ = Eigen::MatrixXd(3,tree.GetNumJoint()-1); // à cause de son incrémentation débile
+	// Traverse this to find all end effectors
+	Vector3 temp;
+	Joint* n = tree.GetRoot();
+	while ( n ) {	
+		if ( n->IsEffector() )
+		{
+			int i = n->GetEffectorNum();
+			// Find all ancestors (they will usually all be joints)
+			// Set the corresponding entries in the Jacobian J
+			Joint* m = tree.GetParent(n);
+			while ( m ) {
+				int j = m->GetJointNum();
+				assert ( 0 <=i && i<tree.GetNumEffector() && 0<=j && j<tree.GetNumJoint() );
+				
+				temp = m->GetS();			// joint pos.
+				temp -= n->GetS();			// -(end effector pos. - joint pos.)
+				Vector3 tmp2 = temp.cross( m->GetW() );			// cross product with joint rotation axis
+				jacobian_.col(j-1) = tmp2;
+				m = tree.GetParent( m );
+			}
+		}
+		n = ( n->IsEffector() ? 0 : tree.GetSuccessor( n ) );
+	}
+}
+
+const Eigen::MatrixXd& Jacobian::GetJacobian()
+{
+	return jacobian_;
+}
+
+Eigen::MatrixXd Jacobian::GetJacobianCopy()
+{
+	return jacobian_;
+}
+const Eigen::MatrixXd& Jacobian::GetJacobianInverse()
+{
+	if(computeInverse_)
+	{
+		computeInverse_ = false;
+		jacobianInverse_ = jacobian_;
+		PseudoInverseDLS(jacobianInverse_, 1.f); // tmp while figuring out how to chose lambda
+	}
+	return jacobianInverse_;
+}
+
+const Eigen::MatrixXd& Jacobian::GetNullspace()
+{
+	if(computeNullSpace_)
+	{
+		computeNullSpace_ = false;
+		/*jacobianInverseNoDls_ = jacobian_;
+		PseudoInverse(jacobianInverseNoDls_); // tmp while figuring out how to chose lambda*/
+		//ComputeSVD();
+		Eigen::MatrixXd id = Eigen::MatrixXd::Identity(jacobian_.cols(), jacobian_.cols());
+		ComputeSVD();
+		//Eigen::JacobiSVD<Eigen::MatrixXd> svd(jacobian_, Eigen::ComputeThinU | Eigen::ComputeThinV);
+		Eigen::MatrixXd res = Eigen::MatrixXd::Zero(id.rows(), id.cols());
+		for( int i =0; i < svd_.matrixV().cols(); ++ i )
+		{
+			VectorX v = svd_.matrixV().col(i);
+			res += v * v.transpose();
+		}
+		Identitymin_ = id - res;
+		//Identitymin_ = id - (jacobianInverseNoDls_* jacobian_);
+	}
+	return Identitymin_;
+}
+
+void Jacobian::GetNullspace( const Eigen::MatrixXd pseudoId, Eigen::MatrixXd& result)
+{
+		GetNullspace(); // computing inverse jacobian
+
+		Eigen::MatrixXd id = Eigen::MatrixXd::Identity(Identitymin_.rows(), Identitymin_.cols());
+		result = pseudoId - ( id + Identitymin_ );
+		//ComputeSVD();
+		//Eigen::MatrixXd id = Eigen::MatrixXd::Identity(svd_.matrixV().cols(), svd_.matrixV().rows());
+		/*ComputeSVD();
+		Eigen::MatrixXd id = Eigen::MatrixXd::Identity(svd_.matrixV().cols(), svd_.matrixV().rows());
+		Eigen::MatrixXd res = Eigen::MatrixXd::Zero(id.rows(), id.cols());
+		for( int i =0; i < id.cols(); ++ i )
+		{
+			VectorX v = svd_.matrixV().col(i);
+			res += v * v.transpose();
+		}
+		//Identitymin_ = id - res;
+		result = id  - (GetJacobianInverse()* GetJacobian());*/
+}
+
+const Eigen::Matrix3d& Jacobian::GetJacobianProduct()
+{
+	if(computeProduct_)
+	{
+		computeProduct_ = false;
+		jacobianProduct_ = jacobian_ * jacobian_.transpose();
+	}
+	return jacobianProduct_;
+}
+
+const Eigen::Matrix3d& Jacobian::GetJacobianProductInverse()
+{
+	if(computeProductInverse_)
+	{
+		computeProductInverse_ = false;
+		Eigen::JacobiSVD<Eigen::Matrix3d> svd = Eigen::JacobiSVD<Eigen::Matrix3d>(jacobianProduct_, Eigen::ComputeFullU | Eigen::ComputeFullV);
+		PseudoInverseSVDDLS(jacobianProduct_, svd, jacobianProductInverse_);
+	}
+	return jacobianProductInverse_;
+}
+
+void Jacobian::ComputeSVD()
+{
+	if(computeJacSVD_)
+	{
+		computeJacSVD_ = false;
+		svd_ = Eigen::JacobiSVD<Eigen::MatrixXd>(jacobian_, Eigen::ComputeThinU | Eigen::ComputeThinV);
+	}
+}
+

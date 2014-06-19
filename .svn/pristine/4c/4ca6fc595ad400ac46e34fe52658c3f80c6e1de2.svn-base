@@ -1,0 +1,276 @@
+
+#include "Tree.h"
+#include "Joint.h"
+#include "MatrixDefs.h"
+#include "math.h"
+#include <iostream>
+
+using namespace matrices;
+
+Tree::Tree()
+{
+	direction_ = new Vector3( 0, 1, 0 );
+	root = 0;
+	nJoint = nEffector = nJoint = 0;
+}
+
+Tree::~Tree()
+{
+	delete direction_;
+}
+
+void Tree::ToRest()
+{
+	Joint* j = GetRoot();
+	while(j)
+	{
+		j->ToRest();
+		j = j->pChild_;
+	}
+	Compute();
+}
+
+void Tree::SetSeqNum(Joint* joint)
+{
+	switch (joint->purpose_) {
+	case JOINT:
+		joint->seqNumJoint_ = nJoint++;
+		joint->seqNumEffector_ = -1;
+		break;
+	case EFFECTOR:
+		joint->seqNumJoint_ = -1;
+		joint->seqNumEffector_ = nEffector++;
+		break;
+	}
+}
+
+void Tree::InsertRoot(Joint* root)
+{
+	assert(nJoint == 0);
+	nJoint++;
+	Tree::root = root;
+	root->r_ = root->attach_;
+	assert(!(root->pChild_));
+	SetSeqNum(root);
+}
+
+void Tree::InsertChild(Joint* parent, Joint* child)
+{
+	assert(parent);
+	parent->pChild_ = child;
+	child->pRealparent_ = parent;
+	child->r_ = child->attach_ - child->pRealparent_->attach_;
+	assert( !(child->pChild_) );
+	SetSeqNum(child);
+}
+
+// Search recursively below "Joint" for the Joint with index value.
+Joint* Tree::SearchJoint(Joint* joint, int index)
+{
+	Joint* ret(0);
+	if (joint != 0)
+	{
+		if (joint->seqNumJoint_ == index)
+		{
+			ret = joint;
+		}
+		else
+		{
+			ret = SearchJoint(joint->pChild_, index);
+		}
+	} 
+	return ret;
+}
+
+// Search recursively below Joint for the end effector with the index value
+Joint* Tree::SearchEffector(Joint* joint, int index)
+{
+	Joint* ret(0);
+	if (joint != 0)
+	{
+		if (joint->seqNumEffector_ == index)
+		{
+			ret = joint;
+		} 
+		else
+		{
+			ret = SearchEffector(joint->pChild_, index);
+		}
+	}
+	return ret;
+}
+
+// Get the joint with the index value
+Joint* Tree::GetJoint(int index)
+{
+	return SearchJoint(root, index);
+}
+
+// Get the end effector for the index value
+Joint* Tree::GetEffector(int index)
+{
+	return SearchEffector(root, index);
+}
+
+// Returns the global position of the effector.
+const Vector3& Tree::GetEffectorPosition(int index)
+{
+	Joint* effector = GetEffector(index);
+	assert(effector);
+	return (effector->s_);  
+}
+
+void Tree::ComputeTree(Joint* joint)
+{
+	if (joint != 0) {
+		joint->ComputeS();
+		joint->ComputeW();
+		ComputeTree(joint->pChild_);
+	}
+}
+
+void Tree::Compute(void)
+{ 
+	ComputeTree(root); 
+}
+
+// Recursively initialize this below the Joint
+void Tree::InitTree(Joint* joint)
+{
+	if (joint != 0)
+	{
+		joint->InitJoint();
+		InitTree(joint->pChild_);
+	}
+}
+
+// Initialize all Joints in the this
+void Tree::Init(void)
+{
+	InitTree(root);
+}
+
+void Tree::ComputeJacobian() 
+{
+	jacobian = Eigen::MatrixXd(3,nJoint-1); // à cause de son incrémentation débile
+	// Traverse this to find all end effectors
+	Vector3 temp;
+	Joint* n = this->GetRoot();
+	while ( n ) {	
+		if ( n->IsEffector() )
+		{
+			int i = n->GetEffectorNum();
+			// Find all ancestors (they will usually all be joints)
+			// Set the corresponding entries in the Jacobian J
+			Joint* m = this->GetParent(n);
+			while ( m ) {
+				int j = m->GetJointNum();
+				assert ( 0 <=i && i<nEffector && 0<=j && j<nJoint );
+				
+				temp = m->GetS();			// joint pos.
+				temp -= n->GetS();			// -(end effector pos. - joint pos.)
+				Vector3 tmp2 = temp.cross( m->GetW() );			// cross product with joint rotation axis
+				//jacobian.SetTriple(i, j, temp);	
+				//std::cout << "matrix0" << jacobian << std::endl;
+				jacobian.col(j-1) = tmp2;
+				//std::cout << "matrix1" << jacobian << std::endl;
+				m = this->GetParent( m );
+			}
+		}
+		n = ( n->IsEffector() ? 0 : this->GetSuccessor( n ) );
+	}
+	jacobianProduct = jacobian * jacobian.transpose();
+	//jacobianProductInverse = jacobianProduct.inverse();
+	jacobianProductInverse = jacobianProduct;
+	jacobianInverse = jacobian;
+	PseudoInverse(jacobianInverse);
+	PseudoInverse(jacobianProductInverse);
+	Identitymin = Matrix3d::Identity() - jacobianInverse*jacobian;
+}
+
+float Tree::ComputeForceManipulability() const
+{
+	float r = ((*direction_).transpose()*jacobianProduct*(*direction_));
+	return 1/sqrt(r);
+}
+
+
+float Tree::ComputeVelocityManipulability() const
+{
+	float r = ((*direction_).transpose()*jacobianProductInverse*(*direction_));
+	return 1/sqrt(r);
+}
+
+float Tree::ComputeForceManipulability(const Vector3& direction) const
+{
+	float r = (direction.transpose()*jacobianProduct*direction);
+	return 1/sqrt(r);
+}
+
+
+float Tree::ComputeVelocityManipulability(const Vector3& direction) const
+{
+	float r = (direction.transpose()*jacobianProductInverse*direction);
+	return 1/sqrt(r);
+}
+
+void Tree::OptimizeOneTheta( Joint* joint, double delta, bool force )
+{
+	bool plus = false; bool minus = false;
+	float current = force ? ComputeForceManipulability() : ComputeVelocityManipulability();
+	while(! (minus && plus))
+	{
+		if (!plus)
+		{
+			joint->AddToTheta( delta );
+			Compute();
+			ComputeJacobian();
+			float res = force ? ComputeForceManipulability() : ComputeVelocityManipulability();
+			if (res <= current)
+			{
+				joint->AddToTheta( -delta );
+				plus = true;
+			}
+			else
+			{
+				current = res;
+			}
+		}
+		else
+		{
+			joint->AddToTheta( -delta );
+			Compute();
+			ComputeJacobian();
+			float res = force ? ComputeForceManipulability() : ComputeVelocityManipulability();
+			if (res <= current)
+			{
+				joint->AddToTheta( +delta );
+				minus = true;
+			}
+			else
+			{
+				current = res;
+			}
+		}
+	}
+}
+
+void Tree::ApproximateForceManipulabilityBruteForce()
+{
+	Joint* n = this->GetRoot();
+	while ( n )
+	{
+		this->OptimizeOneTheta( n, 0.5 );
+		n = n->pChild_;
+	}
+}
+
+void Tree::ApproximateVelocityManipulabilityBruteForce()
+{
+	Joint* n = this->GetRoot();
+	while ( n )
+	{
+		this->OptimizeOneTheta( n, 0.5, false );
+		n = n->pChild_;
+	}
+}

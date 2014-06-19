@@ -1,0 +1,34 @@
+
+#ifndef _CLASS_SAMPLE
+#define _CLASS_SAMPLE
+
+#include <vector>
+#include "MatrixDefs.h"
+
+
+class Tree;
+
+class Sample {
+
+public:
+	typedef std::vector<double> LAngles;
+
+public:
+	Sample(const Tree& /*tree*/);
+	~Sample();
+
+public:
+	void LoadIntoTree(Tree& /*tree*/) const;
+	
+	float velocityManipulabiliy(const matrices::Vector3& /*direction*/) const;
+	float forceManipulabiliy   (const matrices::Vector3& /*direction*/) const ;
+
+private:
+	Eigen::Matrix3d jacobianProd_;
+	Eigen::Matrix3d jacobianProdInverse_;
+	LAngles angles_;
+
+private:
+};
+
+#endif //_CLASS_SAMPLE

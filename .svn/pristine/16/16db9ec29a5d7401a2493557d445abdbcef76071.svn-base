@@ -1,0 +1,67 @@
+#include "Timer.h"
+
+#include <time.h>
+
+Timer::~Timer()
+{
+	// NOTHING
+}
+
+Timer::Timer()
+{
+	resetted_ = true;
+	running_ = false;
+	beg_ = 0;
+	end_ = 0;
+}
+
+
+void Timer::Start() {
+	if(!running_)
+	{
+		if(resetted_)
+			beg_ = (unsigned long) clock();
+		else
+			beg_ -= end_ - (unsigned long) clock();
+		running_ = true;
+		resetted_ = false;
+	}
+}
+
+
+void Timer::Stop() {
+	if(running_)
+	{
+		end_ = (unsigned long) clock();
+		running_ = false;
+	}
+}
+
+void Timer::Reset() {
+	bool wereRunning = running_;
+	if(wereRunning)
+		Stop();
+	resetted_ = true;
+	beg_ = 0;
+	end_ = 0;
+	if(wereRunning)
+		Start();
+}
+
+
+bool Timer::IsRunning() {
+	return running_;
+}
+
+
+unsigned long Timer::GetTime() {
+	if(running_)
+		return ((unsigned long) clock() - beg_);
+	else
+		return end_ - beg_;
+}
+
+
+bool Timer::IsOver(unsigned long milliseconds) {
+	return milliseconds >= GetTime();
+}

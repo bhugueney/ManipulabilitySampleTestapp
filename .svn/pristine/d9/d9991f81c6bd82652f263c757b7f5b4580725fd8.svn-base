@@ -1,0 +1,101 @@
+
+#include "DrawPostures.h"
+#include "DrawRobot.h"
+
+#include "PostureSolver.h"
+#include "MatrixDefs.h"
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+#include <vector>
+
+using namespace std;
+using namespace matrices;
+
+struct DrawPosturePImpl : PostureCreatedListener_ABC
+{
+	DrawPosturePImpl(PostureSolver& solver)
+		: PostureCreatedListener_ABC()
+		, solver_(solver)
+	{
+		solver_.RegisterPostureListener(*this);
+		current_ = drawRobots_.end();
+	}
+
+	~DrawPosturePImpl()
+	{
+		solver_.UnregisterPostureListener(*this);
+		for(T_DrawRobotIT it = drawRobots_.begin(); it != drawRobots_.end(); ++it)
+		{
+			delete(*it);
+		}
+	}
+
+	virtual void OnPostureCreated(NUMBER time, const Robot* pRobot)
+	{
+		drawRobots_.push_back(new DrawRobot(*pRobot));
+		current_ = drawRobots_.begin();
+	}
+
+	typedef vector<DrawRobot*> T_DrawRobot;
+	typedef T_DrawRobot::iterator T_DrawRobotIT;
+	typedef T_DrawRobot::const_iterator T_DrawRobotCIT;
+	T_DrawRobot drawRobots_;
+	PostureSolver& solver_;
+	DrawPosturePImpl::T_DrawRobotCIT current_;
+};
+
+
+
+//TODO listener in case of adding new trees
+DrawPostures::DrawPostures(PostureSolver& solver)
+	: pImpl_(new DrawPosturePImpl(solver))
+{
+	// TODO
+}
+
+DrawPostures::~DrawPostures()
+{
+	// TODO
+}
+
+void DrawPostures::Draw() const
+{
+	for(DrawPosturePImpl::T_DrawRobotCIT it = pImpl_->drawRobots_.begin(); it != pImpl_->drawRobots_.end(); ++it)
+	{
+		(*it)->Draw();
+	}
+}
+
+bool DrawPostures::Next()
+{
+	++(pImpl_->current_);
+	if(pImpl_->current_ == pImpl_->drawRobots_.end())
+	{
+		--(pImpl_->current_);
+		return false;
+	}
+	return true;
+}
+
+bool DrawPostures::Previous()
+{
+	if(pImpl_->current_ == pImpl_->drawRobots_.begin())
+	{
+		return false;
+	}
+	else
+	{
+		--(pImpl_->current_);
+		return true;
+	}
+}
+
+void DrawPostures::DrawOne()
+{
+	if(pImpl_->current_ != pImpl_->drawRobots_.end())
+	{
+		(*(pImpl_->current_))->ToggleSupportPolygon(true);
+		(*(pImpl_->current_))->Draw();
+	}
+}

@@ -1,0 +1,12 @@
+
+#include "MatrixDefs.h"
+
+#ifndef _PI
+#define _PI
+
+const NUMBER Pi = NUMBER(std::acos(-1.0));
+
+const NUMBER RadiansToDegrees = NUMBER(180.0/Pi);
+const NUMBER DegreesToRadians = NUMBER(Pi/180);
+
+#endif // _PI

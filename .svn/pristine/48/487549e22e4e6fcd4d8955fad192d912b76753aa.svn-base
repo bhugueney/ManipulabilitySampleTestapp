@@ -1,0 +1,64 @@
+
+#include "DrawRobot.h"
+#include "DrawTree.h"
+
+#include "kinematic/Robot.h"
+#include "kinematic/MatrixDefs.h"
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+#include <vector>
+
+using namespace std;
+using namespace matrices;
+
+struct PImpl
+{
+	PImpl(const Robot& robot)
+		:robot_(&robot)
+	{
+		//TODO
+	}
+
+	~PImpl()
+	{
+		//NOTHING
+	}
+
+	const Robot* robot_;
+
+	typedef vector<DrawTree> T_Tree;
+	typedef T_Tree::iterator T_TreeIT;
+	typedef T_Tree::const_iterator T_TreeCIT;
+	T_Tree drawTrees_;
+};
+
+
+
+//TODO listener in case of adding new trees
+DrawRobot::DrawRobot(const Robot& robot)
+	: pImpl_(new PImpl(robot))
+{
+	robot.Accept(*this);
+}
+
+DrawRobot::~DrawRobot()
+{
+	// TODO
+}
+
+void DrawRobot::Draw() const
+{
+	const Matrix4& currentTransform(pImpl_->robot_->ToWorldCoordinates());
+	for( PImpl::T_TreeCIT it = pImpl_->drawTrees_.begin(); it!= pImpl_->drawTrees_.end(); ++it)
+	{
+		it->Draw(currentTransform);
+	}
+}
+
+void DrawRobot::Visit(const Tree& tree)
+{
+	pImpl_->drawTrees_.push_back(DrawTree(tree));
+}
+
+

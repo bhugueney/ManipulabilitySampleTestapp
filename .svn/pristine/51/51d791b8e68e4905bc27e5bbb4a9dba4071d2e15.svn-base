@@ -1,0 +1,42 @@
+<world>
+  <robot type="0" samples="10000" x="0.5" y="-0.3" z="0.9" rotx="0" roty="0" rotz="0" iDirx="0" iDiry="0" iDirz="1" 
+  autorotate="false" autorotateleg="false" jumptotarget="true" drawsplines="false" drawnormals="false" reachcom="false" reachcomrotate="false" humanrotate="false"  rotatewithspline="false" rotatewithsplinedir="false" speed = "0.5">
+  <tree id="0">
+		<joint id="0" angle="-90"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="45"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="1">
+		<joint id="0" angle="-90"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="45"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="2">
+		<joint id="0" angle="0"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="-45"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="3">
+		<joint id="0" angle="0"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="-45"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+  </robot>
+  <camera x="0" y="-8" z="2.5" rotx="90" roty="-10" rotz="0"/>
+  <light x="-1" y="-1" shadows="false"/>
+  <obj name="../world/chairback.obj"/>
+  <obstacles>
+  </obstacles>
+</world>

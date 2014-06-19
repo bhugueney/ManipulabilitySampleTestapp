@@ -1,0 +1,144 @@
+#include "PostureManager.h"
+
+#include "Simulation.h"
+#include "MatrixDefs.h"
+
+#include "API/PostureManagerI.h"
+
+#include "Scorer.h"
+
+using namespace manip_core;
+using namespace matrices;
+using namespace statepostures;
+
+namespace
+{
+	void AddHumanState(bool a, bool b, bool c, bool d, std::vector<T_PostureState>& res)
+	{
+		T_PostureState temp;
+		temp.push_back(a); temp.push_back(b); temp.push_back(c); temp.push_back(d);
+		res.push_back(temp);
+
+	}
+
+	std::vector<T_PostureState> CreateValidStates(const RobotI* robot)
+	{
+		std::vector<T_PostureState> res;
+		switch(robot->GetType())
+		{
+			default:
+			{
+				//AddHumanState(false, false, false, false, res);
+				// both legs
+				AddHumanState(true, true, true, true, res);
+				AddHumanState(true, true, true, false, res);
+				AddHumanState(true, true, false, true, res);
+				AddHumanState(true, true, false, false, res);
+				
+				// left leg
+				AddHumanState(false, true, true, true, res);
+				AddHumanState(false, true, true, false, res);
+				AddHumanState(false, true, false, true, res);
+				AddHumanState(false, true, false, false, res);
+				
+				// reight leg
+				AddHumanState(true, false, true, true, res);
+				AddHumanState(true, false, true, false, res);
+				AddHumanState(true, false, false, true, res);
+				AddHumanState(true, false, false, false, res);
+			}
+		}
+		return res;
+	}
+}
+
+PostureManager::PostureManager(PostureManagerI* pPostureManager)
+	: pPostureManager_(pPostureManager)
+	, scorer_(new ScorerHuman())
+{
+	// NOTHING
+}
+
+PostureManager::~PostureManager()
+{
+	pPostureManager_->Release();
+	delete (scorer_);
+}
+
+void PostureManager::SetJumpToTarget(const bool jump)
+{
+	pPostureManager_->SetJumpToTarget(jump);
+}
+
+
+void PostureManager::AddCheckPoint(const float time, const matrices::Vector3& transform)
+{
+	double transf[3];
+	matrices::vect3ToArray(transf, transform);
+	pPostureManager_->AddTrajectoryPoint(time, transf);
+}
+
+void PostureManager::ResetTrajectory()
+{
+	pPostureManager_->ResetTrajectory();
+}
+
+void PostureManager::AddPostureCriteria(const enums::postureCriteria::ePostureCriteria criteria) 
+{
+	pPostureManager_->AddPostureCriteria(criteria);
+}
+
+void PostureManager::RegisterPostureCreatedListenerI(PostureCreatedListenerI* listener) 	
+{
+	pPostureManager_->RegisterPostureCreatedListenerI(listener);
+}
+
+void PostureManager::UnRegisterPostureCreatedListenerI(PostureCreatedListenerI* listener) 
+{
+	pPostureManager_->UnRegisterPostureCreatedListenerI(listener);
+}
+
+void PostureManager::ComputeOnline(const RobotI* robot, int nbSamples) 
+{
+	//pPostureManager_->ComputeOnline(robot, nbSamples);
+}
+
+void PostureManager::PlanContacts(const RobotI* robot, int nbSamples, const std::vector<manip_core::RobotI*>& positions) 
+{
+	//pPostureManager_->ComputeOnline(robot, nbSamples);
+	std::vector<T_PostureState> validStates = CreateValidStates(robot);
+	pPostureManager_->PlanContacts(robot, nbSamples, validStates, positions, scorer_);
+}
+
+void PostureManager::InitSamples(const RobotI* robot, int nbSamples)
+{
+	pPostureManager_->InitSamples(robot, nbSamples);
+}
+
+void PostureManager::VisitSamples(const RobotI* robo, const TreeI* tree, SampleVisitorI* visitor, bool collide)
+{
+	pPostureManager_->AcceptSampleVisitor(robo, tree, visitor, collide);
+}
+
+
+T_CubicTrajectory PostureManager::NextPosture(RobotI* robot, const matrices::Vector3& direction)
+{
+	double dir [3];
+	matrices::vect3ToArray(dir, direction);
+	return pPostureManager_->NextPosture(robot, dir, Simulation::GetInstance()->simpParams_.closestDistance_);
+}
+
+void PostureManager::Update(const unsigned long time)
+{
+	pPostureManager_->Update(time);
+}
+
+#ifdef PROFILE
+void PostureManager::Log() const
+{
+	pPostureManager_->Log();
+}
+#endif
+
+
+

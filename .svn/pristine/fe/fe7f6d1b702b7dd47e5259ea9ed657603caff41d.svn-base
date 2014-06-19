@@ -1,0 +1,52 @@
+<world>
+  <robot type="0" samples="100000" x="-0.5" y="-5" z="1.2" rotx="0" roty="0" rotz="0" iDirx="0" iDiry="0" iDirz="1" 
+  autorotate="false" autorotateleg="false" jumptotarget="true" drawsplines="false" drawEllipseAxes="false" drawEllipsoid="false" 
+  drawnormals="false" reachcom="false" reachcomrotate="false" humanrotate="false"  rotatewithspline="false" rotatewithsplinedir="true" speed = "0.3">
+  <tree id="0" lock="true">
+		<joint id="0" angle="0"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="0"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="1"  lock="true">
+		<joint id="0" angle="0"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="0"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="2">
+		<joint id="0" angle="0"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="-70"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="3">
+		<joint id="0" angle="0"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="0"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+  </robot>
+  <camera x="-1" y="2" z="2" rotx="-90" roty="0" rotz="0"/>
+  <light x="-1" y="-1" shadows="false"/>
+  <obj name=""/>
+  <obstacles>
+	<color> 
+		<p0 r="0.6" g="0.6" b="0.8" t ="1"/>
+	</color>
+  <obstacle> 
+		<p0 x="0" y="10" z="10"/>
+		<p1 x="0" y="-10" z="10"/>
+		<p2 x="-0" y="-10" z="-10"/>
+		<p3 x="-0" y="10" z="-10"/>
+	</obstacle>
+  </obstacles>
+</world>

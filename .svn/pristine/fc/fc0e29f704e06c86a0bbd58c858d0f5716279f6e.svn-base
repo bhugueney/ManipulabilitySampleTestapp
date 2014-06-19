@@ -1,0 +1,70 @@
+
+#ifndef _CLASS_POSTURESOLVER
+#define _CLASS_POSTURESOLVER
+
+#include "kinematic/SampleGeneratorVisitor_ABC.h"
+#include "MatrixDefs.h"
+
+#include <memory>
+#include <vector>
+
+class Sample;
+class SampleGenerator;
+class World;
+class Robot;
+class Tree;
+class Trajectory;
+class PostureCriteria_ABC;
+
+struct PosturePImpl;
+
+/* parses sampled configurations in order to find an appropriate posture given a previous posture, 
+the current trajectory and the world*/
+
+class PostureCreatedListener_ABC
+{
+public:
+	 PostureCreatedListener_ABC(){};
+	~PostureCreatedListener_ABC(){};
+
+public:
+	virtual void OnPostureCreated(NUMBER time, const Robot* /*pRobot*/) = 0; // TODO posture destroyed ?
+};
+
+class PostureSolver
+{
+public:
+	typedef std::vector<std::pair<NUMBER, Robot*>>	 T_Robots;
+	typedef T_Robots::iterator								 T_RobotsIT;
+	typedef T_Robots::const_iterator					     T_RobotsCIT;
+
+public:
+	 PostureSolver(const World& /*world*/); // todo direciton / trajectory
+	~PostureSolver();
+
+public:
+	void   RegisterPostureListener(		 PostureCreatedListener_ABC& /*listener*/);
+	bool UnregisterPostureListener(const PostureCreatedListener_ABC& /*listener*/); // TODO
+
+	void AddToeOffCriteria(PostureCriteria_ABC* /*criteria*/);
+	void AddToeOnCriteria (PostureCriteria_ABC* /*criteria*/);
+
+public:
+	const T_Robots& CreatePostures(const Robot& /*previousTransform*/, Trajectory& /*trajectory*/);
+	Robot*		    CreatePosture (const Robot& /*previousTransform*/, NUMBER time, const matrices::Matrix4& /*transform*/,  bool& /*changed*/);
+	Robot*		    CreateStillPosture (const Robot& /*previousTransform*/, NUMBER time, const matrices::Matrix4& /*transform*/);
+	Tree*		    GetClosestToCom(const Robot& /*robot*/) const;
+
+private:
+	bool MustLift    (const Robot& /*robot*/, const Tree& /*tree*/) const;
+	bool BreakBalance(const Robot& /*robot*/, Tree& /*tree*/) const;
+	bool HasChanged  (const Robot& /*robot1*/, const Robot& /*robot2*/);
+
+	bool LockTree		 (Robot& /*robot*/, Tree& /*tree*/);  // Gets sampled tree configuration that suits the best to constraints
+	bool HandleLockedTree(Robot& /*robot*/, Tree& /*tree*/);  // Gets sampled tree configuration that suits the best to constraints
+
+private:
+	std::auto_ptr<PosturePImpl> pImpl_;
+};
+
+#endif //_CLASS_POSTURESOLVER

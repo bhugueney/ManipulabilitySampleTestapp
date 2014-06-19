@@ -1,0 +1,42 @@
+
+#ifndef _CLASS_ROBOTROOTSAMPLER
+#define _CLASS_ROBOTROOTSAMPLER
+
+#include "MathDefs.h"
+#include "kinematic/Robot.h"
+#include "world/World.h"
+
+struct Boundaries
+{
+	Boundaries(){};
+	~Boundaries(){};
+	NUMBER minX_;
+	NUMBER maxX_;
+	NUMBER minY_;
+	NUMBER maxY_;
+	NUMBER minZ_;
+	NUMBER maxZ_;
+	bool solutionMayExists_;
+	bool IsBounded_;
+};
+
+/* Generates root positions compatible with existing contact constraints*/
+class RobotRootSampler
+{
+
+public:
+	 RobotRootSampler(const World& /*world*/, const Robot& /*robot*/); // todo direciton / trajectory
+	~RobotRootSampler();
+
+public:
+	Robot* GenerateSample() const;
+	Robot* GenerateSampleAndContact(Tree::TREE_ID /*limbToTlock*/) const;
+	bool SolutionMayExists(const matrices::Vector3& /*rootPosition*/) const;
+
+public:
+	const World& world_;
+	const Robot& robot_;
+	const Boundaries boundaries_;
+};
+
+#endif //_CLASS_ROBOTROOTSAMPLER

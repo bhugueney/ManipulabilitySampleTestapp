@@ -1,0 +1,33 @@
+
+#ifndef _CLASS_FILTER_DISTANCE
+#define _CLASS_FILTER_DISTANCE
+
+#include <memory>
+
+#include "Filter_ABC.h"
+#include "MatrixDefs.h"
+
+class Sample;
+class Obstacle;
+class Robot;
+
+struct FilterDPImpl;
+
+// checks that end-effector is "around" obstacle
+class FilterDistanceObstacle : public Filter_ABC {
+
+friend class SampleGenerator;
+
+public:
+	 FilterDistanceObstacle(NUMBER /*treshold*/, const Obstacle& /*obstacle*/, const Robot& /*robot*/);
+	~FilterDistanceObstacle();
+
+protected:
+	virtual bool ApplyFilter(const Sample& /*sample*/) const;
+
+private:
+	std::auto_ptr<FilterDPImpl> pImpl_;
+};
+
+
+#endif //_CLASS_FILTER_DISTANCE

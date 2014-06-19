@@ -1,0 +1,54 @@
+
+#include "PostureConstraint.h"
+
+#include "kinematic/Robot.h"
+#include "kinematic/Tree.h"
+
+#include "kinematic/Jacobian.h"
+#include "sampling/Sample.h"
+
+using namespace matrices;
+using namespace Eigen;
+
+PostureConstraint::PostureConstraint()
+{
+	// NOTHING
+}
+
+PostureConstraint::~PostureConstraint()
+{
+	// NOTHING
+}
+
+#include <iostream>
+
+NUMBER PostureConstraint::Evaluate(const Robot& robot, const Tree& tree, const int joint, Jacobian& jacobianMinus, Jacobian& jacobianPlus, float epsilon, const Vector3& direction)
+{
+	Sample * target = tree.targetSample_;
+	if(target)
+	{
+		const Joint* j = tree.GetRoot(); int i =0;
+		while (j)
+		{
+			if(i = joint)
+			{
+				double angleRef = target->AngleValues()[i];
+				double angle = j->GetAngle();
+				return angleRef-angle;
+				/*std::cout << "joint " << i << " target   :" << angleRef << std::endl;
+				std::cout << "joint " << i << " current   :" << angle << std::endl;
+				std::cout << "joint " << i << " distance   :" << ((angleRef - (angle + epsilon)) * (angleRef - (angle + epsilon)) - (angleRef - (angle - epsilon)) * (angleRef - (angle - epsilon))) /(epsilon * 2) << std::endl;
+				*///return ((angleRef - (angle + epsilon)) * (angleRef - (angle + epsilon)) - (angleRef - (angle - epsilon)) * (angleRef - (angle - epsilon))) /(epsilon * 2);
+			}
+			else
+			{
+				j = j->pChild_;
+			}
+			++i;
+		}
+	}
+	return 0;
+}
+
+
+

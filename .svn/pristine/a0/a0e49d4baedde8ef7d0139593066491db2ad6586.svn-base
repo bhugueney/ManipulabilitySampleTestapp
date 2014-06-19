@@ -1,0 +1,257 @@
+
+#include "CollisionHandlerBullet.h"
+#include "kinematic/Robot.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Joint.h"
+#include "world/Obstacle.h"
+
+#include "btBulletCollisionCommon.h"
+#include <vector>
+
+// Collision handler based on
+// ozCollide 1.1.1 library
+
+using namespace std;
+using namespace manip_core::enums;
+
+
+namespace
+{
+	const int maxNumObjects = 400;
+
+	//eigen to bullet
+	btVector3 eTb(const matrices::Vector3& vect)
+	{
+		return btVector3((btScalar)(vect.x()), (btScalar)(vect.y()), (btScalar)(vect.z()));
+	}
+
+	btTransform eTbt(const matrices::Matrix4& mat)
+	{
+		btTransform transform;
+		btMatrix3x3& res = transform.getBasis();
+		for(int i=0; i<3; ++i)
+		{
+			btVector3& row = res[i];
+			row.setX(mat(i,0));row.setY(mat(i,1));row.setZ(mat(i,2));
+		}
+		transform.setOrigin(eTb(mat.block<3,1>(0,3)));
+		return transform;
+	}
+}
+
+struct CollisionHandlerBulletPImpl
+{
+	CollisionHandlerBulletPImpl()
+		: robotDefInit_(false)
+		, instantiated_(false)
+		, currentNbObjects_(0)
+	{
+		///collision configuration contains default setup for memory, collision setup.
+		mPhysicsConfig = new btDefaultCollisionConfiguration();
+		///use the default collision dispatcher. For parallel processing you can use a diffent dispatcher (see Extras/BulletMultiThreaded)
+		mPhysicsDispatcher = new    btCollisionDispatcher(mPhysicsConfig);
+		///btDbvtBroadphase is a good general purpose broadphase. You can also try out btAxis3Sweep.
+		mPhysicsCache = new btDbvtBroadphase();
+		world = new btCollisionWorld(mPhysicsDispatcher, mPhysicsCache, mPhysicsConfig);
+	}
+
+	~CollisionHandlerBulletPImpl()
+	{
+		// TODO
+		delete world;
+		delete mPhysicsCache;
+		delete mPhysicsDispatcher;
+		delete mPhysicsConfig;
+		for(int i =0; i< mPhysicsShapes.size(); ++i)
+		{
+			delete mPhysicsShapes[i];
+		}
+		for(int i =0; i< mTrianglemeshs.size(); ++i)
+		{
+			delete mTrianglemeshs[i];
+		}
+	}
+	
+	typedef std::vector<btCollisionObject> TreeDef;
+	typedef std::vector<TreeDef> RobotDef;
+
+	TreeDef CreateLimbs(const Tree& tree)
+	{
+		TreeDef res;
+
+		Joint* previous = tree.GetRoot();
+		Joint* current = previous->pChild_;
+		matrices::Vector3 zero(0,0,0);
+		while(current)
+		{
+			if(current->GetR() != zero)
+			{
+				matrices::Vector3 limb = current->ComputeS() - previous->ComputeS();
+				previous = current;
+				res.push_back(CreateCollisionObjectForTree((float)(limb.norm())));
+			}
+			current = current->pChild_;
+		}
+		return res;		
+	}
+
+	void CreateRobotDef(const Robot& robot)
+	{
+		robotDefInit_ = true;
+		for(Robot::T_TreeCIT it = robot.GetTrees().begin(); it != robot.GetTrees().end(); ++it)
+		{
+			if((*it)->GetTemplateId() <= robotDef.size())
+				robotDef.push_back(CreateLimbs(*(*it)));
+		}
+	}
+
+	btCollisionObject CreateCollisionObjectForTree(float length)
+	{
+		btCollisionObject res;
+		btCollisionShape* colShape = new btCapsuleShapeZ((btScalar)((length - 0.01f) / 2), length);
+		mPhysicsShapes.push_back(colShape);
+		res.setCollisionShape(colShape);
+
+		btMatrix3x3 basisA;
+		basisA.setIdentity();
+
+		res.getWorldTransform().setBasis(basisA);
+		return res;
+	}
+	
+	void CreateCollisionObjectForObstacle(const Obstacle& obstacle)
+	{
+		btTriangleMesh* trianglemesh = new btTriangleMesh();
+		trianglemesh->addTriangle(eTb(obstacle.GetP1()), eTb(obstacle.GetP2()), eTb(obstacle.GetP3()));
+		trianglemesh->addTriangle(eTb(obstacle.GetP3()), eTb(obstacle.GetP4()), eTb(obstacle.GetP1()));
+		mTrianglemeshs.push_back(trianglemesh);
+		btCollisionShape* colShape = new btBvhTriangleMeshShape(trianglemesh, true);
+		mPhysicsShapes.push_back(colShape);
+		objects[currentNbObjects_].setCollisionShape(colShape);
+
+		btMatrix3x3 basisA;
+		basisA.setIdentity();
+
+		objects[currentNbObjects_].getWorldTransform().setBasis(basisA);
+		world->addCollisionObject(&objects[currentNbObjects_]);
+		++currentNbObjects_;
+	}
+
+	bool instantiated_;
+	btCollisionObject	objects[maxNumObjects];
+	unsigned int currentNbObjects_;
+	btDefaultCollisionConfiguration*        mPhysicsConfig;
+	btCollisionDispatcher*                  mPhysicsDispatcher;
+	btBroadphaseInterface*                  mPhysicsCache;
+	btCollisionWorld* world;
+	btAlignedObjectArray<btCollisionShape*> mPhysicsShapes;
+	btAlignedObjectArray<btTriangleMesh*> mTrianglemeshs;
+	RobotDef robotDef;
+	bool robotDefInit_;
+};
+
+CollisionHandlerBullet::CollisionHandlerBullet()
+	: CollisionHandler_ABC()
+	, pImpl_(new CollisionHandlerBulletPImpl())
+{
+	// NOTHING
+}
+
+CollisionHandlerBullet::~CollisionHandlerBullet()
+{
+	// NOTHING
+}
+
+void CollisionHandlerBullet::AddObstacle(const Obstacle* obstacle)
+{
+	assert(!(pImpl_->instantiated_));
+	pImpl_->CreateCollisionObjectForObstacle(*obstacle);
+}
+
+void CollisionHandlerBullet::Instantiate()
+{
+	pImpl_->instantiated_ = true;
+}
+using namespace matrices;
+namespace
+{
+	struct ContactSensorCallback : public btCollisionWorld::ContactResultCallback {
+
+	//! Constructor, pass whatever context you want to have available when processing contacts
+	/*! You may also want to set m_collisionFilterGroup and m_collisionFilterMask
+	 *  (supplied by the superclass) for needsCollision() */
+	ContactSensorCallback(btCollisionObject& obj)
+		: btCollisionWorld::ContactResultCallback(), body(obj), nbCollide(0){}
+
+	btCollisionObject& body; //!< The body the sensor is monitoring
+	int nbCollide;
+
+	//! Called with each contact for your own processing (e.g. test if contacts fall in within sensor parameters)
+	virtual btScalar addSingleResult(btManifoldPoint& cp,
+		const btCollisionObjectWrapper* colObj0,int partId0,int index0,
+		const btCollisionObjectWrapper* colObj1,int partId1,int index1)
+	{
+		if(colObj0->m_collisionObject==&body) {
+			++nbCollide;
+		} else {
+			assert(colObj1->m_collisionObject==&body && "body does not match either collision object");
+			++nbCollide;
+			//pt = cp.m_localPointB;
+		}
+		// do stuff with the collision point
+		return 0; // not actually sure if return value is used for anything...?
+	}
+};
+}
+
+bool CollisionHandlerBullet::IsColliding(const Robot& robot, const Tree& tree)
+{
+	// TODO
+	if(!pImpl_->robotDefInit_) pImpl_->CreateRobotDef(robot);
+	// what needs to be done: 1 get appropriate tree object predefinition
+	// 2 set it to global coordinates matching current tree
+	// 3 check detection
+	//1
+	CollisionHandlerBulletPImpl::TreeDef& treeDef = pImpl_->robotDef[tree.GetTemplateId()];
+
+	matrices::Matrix4 mat(robot.ToWorldCoordinates());
+	Joint* j = tree.GetRoot();
+	matrices::Vector3 zero(0,0,0);
+	CollisionHandlerBulletPImpl::TreeDef::iterator it = treeDef.begin();
+	matrices::Vector3 previous = matrices::matrix4TimesVect3(mat, j->ComputeS());
+	matrices::Vector3 current;
+	while(j && it != treeDef.end())
+	{
+		Matrix4 jointTransform = Translate(j->GetR()); // translation of current joint
+		Matrix4 jointCenterTransform = Translate(j->GetR()/2); // translation of current joint
+		switch(j->GetRotation())
+		{
+			case rotation::X:
+				jointTransform = jointTransform + Rotx4(j->GetAngle());
+				jointCenterTransform = jointCenterTransform + Rotx4(j->GetAngle());
+				break;
+			case rotation::Y:
+				jointTransform = jointTransform + Roty4(j->GetAngle());
+				jointCenterTransform = jointCenterTransform + Roty4(j->GetAngle());
+				break;
+			case rotation::Z:
+				jointTransform = jointTransform + Rotz4(j->GetAngle());
+				jointCenterTransform = jointCenterTransform + Rotz4(j->GetAngle());
+				break;
+		}
+		mat = mat * jointTransform;
+		if(j->GetR() != zero)
+		{
+			current = (matrices::matrix4TimesVect3(mat, j->ComputeS()));
+			(*it).setWorldTransform(eTbt(mat*jointCenterTransform));
+			ContactSensorCallback cb(*it);
+			pImpl_->world->contactTest(&(*it), cb);
+			if(cb.nbCollide>30) return true;
+			++it;
+		}
+		j = j->pChild_;
+	}
+
+
+	return false;
+}

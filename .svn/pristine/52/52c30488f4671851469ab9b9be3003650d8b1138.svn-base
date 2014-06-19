@@ -1,0 +1,102 @@
+
+#ifndef _CLASS_TREE
+#define _CLASS_TREE
+
+#include "Joint.h"
+#include "MatrixDefs.h"
+
+class Jacobian;
+class ComVisitor_ABC;
+
+class Tree {
+
+public:
+	typedef unsigned int TREE_ID;
+
+public:
+	EIGEN_MAKE_ALIGNED_OPERATOR_NEW
+	explicit Tree(TREE_ID /*id*/);
+	explicit Tree(TREE_ID /*id*/, TREE_ID /*templateId*/);
+	~Tree();
+
+	int GetNumJoint() const { return nJoint; }
+	int GetNumEffector() const { return nEffector; }
+	void InsertRoot(Joint*);
+	void InsertChild(Joint* parent, Joint* child);
+
+	//compute jacobian
+	void ComputeJacobian();
+
+	void AcceptComVisitor(ComVisitor_ABC* /*visitor*/) const;
+
+	// Accessors based on node numbers
+	Joint* GetJoint(int) const;
+	Joint* GetEffector(int) const;
+	const matrices::Vector3& GetPosition() const;
+	const NUMBER GetBoundaryRadius() const { return sphereRadius_; };
+	const matrices::Vector3& GetEffectorPosition(int) const;
+
+	// Accessors for tree traversal
+	Joint* GetRoot() const { return root; }
+	Joint* GetSuccessor (const Joint*) const;
+	Joint* GetParent(const Joint* node) const { return node->pRealparent_; }
+
+	Jacobian* GetJacobian() {return jacobian_; };
+
+	// in contact
+	// world coordinates
+	void LockTarget(const matrices::Vector3& target){ target_ = target; lock_ = true; };
+	void UnLockTarget(){ lock_ = false; };
+	bool IsLocked() const{ return lock_; };
+
+	const matrices::Vector3& GetTarget() const {return target_;};
+
+	void Compute();
+	void Init();
+	void ToRest();
+	
+	const TREE_ID& GetId()const { return id_; }
+	const TREE_ID& GetTemplateId()const { return templateId_; } // share sampling
+
+	Tree* Clone() const;
+
+public:
+	matrices::Vector3 directionForce_;
+	matrices::Vector3 directionVel_;
+	matrices::Vector3 target_;
+	matrices::Vector3 referenceTarget_;
+	matrices::Vector3 position_;
+
+private:
+
+	Jacobian* jacobian_;
+
+	Joint* root;
+	int nJoint;			// nJoint = nEffector + nJoint
+	int nEffector;
+	void SetSeqNum(Joint*);
+	Joint* SearchJoint(Joint*, int) const;
+	Joint* SearchEffector(Joint*, int) const;
+	void ComputeTree(Joint*);
+	void InitTree(Joint*);
+	bool lock_;
+	const TREE_ID id_;
+	const TREE_ID templateId_;
+
+	NUMBER sphereRadius_;
+};
+
+inline Joint* Tree::GetSuccessor (const Joint* node) const
+{
+	while (true) {
+		if (node->pChild_) {
+			return node->pChild_;
+		}
+		node = node->pRealparent_;
+		if (!node) {
+			return 0;		// Back to root, finished traversal
+		} 
+	}
+}
+
+#endif //_CLASS_TREE

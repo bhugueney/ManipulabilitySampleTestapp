@@ -1,0 +1,25 @@
+
+#ifndef _CLASS_DRAWPOSTURES
+#define _CLASS_DRAWPOSTURES
+
+
+#include <memory>
+
+struct DrawPosturePImpl;
+
+class PostureSolver;
+
+class DrawPostures {
+
+public:
+	 DrawPostures(PostureSolver& /*solver*/);
+	~DrawPostures();
+
+	 void Draw()const;
+	
+
+private:
+	std::auto_ptr<DrawPosturePImpl> pImpl_;
+}; // class PostureSolver
+
+#endif //_CLASS_DRAWPOSTURES

@@ -1,0 +1,27 @@
+
+#ifndef _CLASS_OBSTACLE_GENERATOR
+#define _CLASS_OBSTACLE_GENERATOR
+
+#include "MatrixDefs.h"
+
+
+class World;
+
+class ObstacleGenerator
+{
+
+public:
+	 ObstacleGenerator();
+	~ObstacleGenerator();
+
+public:
+	void GenerateChess(World& world, const matrices::Vector3& /*upLeft*/, const matrices::Vector3& /*bottomRight*/, NUMBER /*height*/, const unsigned int /*depth*/) const;
+	void GenerateStair(World& world, const matrices::Vector3& /*upLeft*/, const matrices::Vector3& /*bottomRight*/, NUMBER /*heightInit*/, NUMBER /*heightFinal*/, const unsigned int /*depth*/) const;
+	void GenerateStairChess(World& world, const matrices::Vector3& /*upLeft*/, const matrices::Vector3& /*bottomRight*/, NUMBER /*heightInit*/, NUMBER /*heightFinal*/, const unsigned int /*depth*/, const unsigned int /*depthChess*/) const;
+	void GenerateYInclinedPlank(World& world, const matrices::Vector3& /*upLeft*/, const matrices::Vector3& /*bottomRight*/) const;
+	void GenerateXInclinedPlank(World& world, const matrices::Vector3& /*upLeft*/, const matrices::Vector3& /*bottomRight*/) const;
+
+private:
+};
+
+#endif //_CLASS_OBSTACLE_GENERATOR

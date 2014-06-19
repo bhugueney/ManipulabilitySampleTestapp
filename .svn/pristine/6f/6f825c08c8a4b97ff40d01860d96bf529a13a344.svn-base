@@ -1,0 +1,7 @@
+<world>
+  <robot type="0" x="-2" y="-0.5" z="1.5" rotx="0" roty="0" rotz="0"/>
+  <camera x="-13" y="0" z="5" rotx="0" roty="0" rotz="0"/>
+  <obj name="../world/chair.obj"/>
+  <obstacles>
+  </obstacles>
+</world>

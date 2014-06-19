@@ -1,0 +1,19 @@
+#include "Camera.h"
+#include "Simulation.h"
+
+using namespace matrices;
+
+void CameraFollow::DrawArrow()
+{
+	for(int i =0; i<3; ++i)
+	{
+		screenArrowPosition_(i) = xyz_[i] + arrowOffset_[i];
+	}
+	oldDir_ = Simulation::GetInstance()->motionHandler_.GetDirection();
+	Matrix3 transformCube;
+	GetRotationMatrix(unitz, oldDir_, transformCube);
+	matrix3ToArray(idMatrix, transformCube);
+	matrices::vect3ToArray(arrow_, screenArrowPosition_ + oldDir_ / 2.);
+	dsDrawCapsule(arrow_, idMatrix, 1, 0.05);
+	//glutSolidCone(/*GLdouble base*/0.05, /*GLdouble height*/0.05, /*GLint slices*/10, /*GLint stacks*/10);
+}

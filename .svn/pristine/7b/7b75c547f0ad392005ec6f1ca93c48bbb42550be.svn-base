@@ -1,0 +1,11 @@
+<world>
+ <startpaused val="true"/>	
+  <robot type="6" samples="1000" x="0" y="0" z="0" rotx="0" roty="0" rotz="0" iDirx="1" iDiry="0" iDirz="0" gait="false" jointlimit="true" autorotate="false" 
+  autorotateleg="false" jumptotarget="true" drawsplines="false" drawEllipseAxes="false" drawEllipsoid="false" drawnormals="false" reachcom="false" rotatewithspline="true" speed ="0.1" planif="false">
+  </robot>
+  <camera x="-1" y="0" z="3" rotx="0" roty="-70" rotz="0" type="follow"/>
+  <light x="3" y="-5" shadows="false"/>
+  <obj name=""/>
+  <obstacles>
+  </obstacles>
+</world>

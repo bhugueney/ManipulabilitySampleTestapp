@@ -1,0 +1,15 @@
+
+#ifndef _MANIPCORE_API_DEF
+#define _MANIPCORE_API_DEF
+
+#include "Exports.h"
+
+
+namespace manip_core
+{
+
+int CreateRobot();
+
+} // en namespace manipulation_core
+
+#endif //_MANIPCORE_API_DEF

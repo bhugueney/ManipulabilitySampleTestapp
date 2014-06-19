@@ -1,0 +1,29 @@
+#include "PostureCriteriaToeOnGait.h"
+#include "world/World.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Robot.h"
+
+PostureCriteriaToeOnGait::PostureCriteriaToeOnGait(SpiderGaitI* gait)
+	: gait_(gait)
+{
+	// NOTHING
+}
+
+PostureCriteriaToeOnGait::~PostureCriteriaToeOnGait()
+{
+	// NOTHING
+}
+
+bool PostureCriteriaToeOnGait::Evaluate(const World& world, const Robot& robot, const Tree& tree) const
+{
+	int id =  tree.GetId();
+	//if( gait_->MidPhase() )return true;
+	if (gait_->Phase() == 1)
+	{
+		return id == 0 || id == 2 || id == 4 || id == 6;
+	}
+	else
+	{
+		return id == 1 || id == 3 || id == 5 || id == 7;
+	}
+}

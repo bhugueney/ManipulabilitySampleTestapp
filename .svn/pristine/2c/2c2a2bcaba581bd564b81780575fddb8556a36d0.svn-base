@@ -1,0 +1,111 @@
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#include "CubicFunction.h"
+#include "ExactCubic.h"
+#include "SplineVisitor.h"
+#include "MatrixDefs.h"
+
+#include <string>
+#include <iostream>
+#include <cmath>
+
+/*Cubic Visitor tests*/
+#include <vector>
+
+#include<Eigen/StdVector>
+
+namespace spline
+{
+	typedef std::vector<Vector3,Eigen::aligned_allocator<Vector3>> T_Vector;
+	typedef T_Vector::const_iterator CIT_Vector;
+	struct SplineVisitorTest : public SplineVisitor
+	{
+		SplineVisitorTest()
+			: previousTime_(-1)
+		{
+			// NOTHING
+		}
+
+		~SplineVisitorTest()
+		{
+			// NOTHING
+		}
+
+		virtual void Visit(const Real time, const Vector3& value)
+		{
+			if(previousTime_ >= time)
+			{
+				std::cout << "Error : Visit method called with non sequential time values" << std::endl;
+			}
+			previousTime_ = time;
+			values_.push_back(value);
+		}
+
+		Real previousTime_;
+		T_Vector values_;
+	};
+}
+
+
+using namespace spline;
+
+SplineVisitorTest visitor;
+
+static float xyz[3] = {-10.0,1,0.0};
+static float hpr[3] = {0.0,0.0,0.0};
+
+
+static void simLoop (int pause)
+{
+	float id[12];
+	float pos[3];
+	matrices::matrixID(id);
+	dsSetColor(1.0f, 0.0f, 0.0f);
+	for(CIT_Vector it = visitor.values_.begin(); it!=visitor.values_.end(); ++it)
+	{
+		matrices::vect3ToArray(pos,*it);
+		dsDrawSphere(pos,id,0.1);
+	}
+}
+
+void start()
+{
+    dsSetViewpoint (xyz,hpr);
+	spline::T_Waypoint waypoints;
+	waypoints.push_back(std::make_pair(0,Vector3(0,0,0)));
+	waypoints.push_back(std::make_pair(10,Vector3(5,5,10)));
+	waypoints.push_back(std::make_pair(20,Vector3(10,15,0)));
+	ExactCubic exactCubic(waypoints);
+	exactCubic.Accept(visitor, 0.2);
+}
+
+void command(int cmd)   /**  key control function; */
+{
+	switch (cmd)
+	{	
+		case '+' :
+		break;
+	}
+}
+
+
+int main(int argc, char *argv[])
+{
+		/*
+	drawstuff stuff*/
+	dsFunctions fn;
+    fn.version = DS_VERSION;
+    fn.start   = &start;
+    fn.step    = &simLoop;
+	fn.command = &command;
+    fn.stop    = 0;
+    fn.path_to_textures = "../textures";
+    dsSimulationLoop (argc,argv,800,600,&fn);
+
+    return 0;
+}

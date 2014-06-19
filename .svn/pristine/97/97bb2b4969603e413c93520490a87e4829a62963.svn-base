@@ -1,0 +1,37 @@
+#include "DrawSpline.h"
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+using namespace matrices;
+
+DrawSpline::DrawSpline(const spline::Curve_ABC& spline)
+{
+	bool ok = true;
+	matrices::Vector3 val;
+	for(NUMBER t = 0; ok || t < 0.3; t = t +0.01)
+	{
+		ok = spline.Evaluate(t, val);
+		if(ok) 
+		{
+			points_.push_back(val);
+		}
+	}
+}
+
+DrawSpline::~DrawSpline()
+{
+	// NOTHING
+}
+
+void DrawSpline::Draw() const
+{
+	float id[12];
+	float pos[3];
+	matrices::matrixID(id);
+	dsSetColor(1.0f, 0.0f, 0.0f);
+	for(CIT_Vector3 it = points_.begin(); it!=points_.end(); ++it)
+	{
+		matrices::vect3ToArray(pos,*it);
+		dsDrawSphere(pos,id,0.05f);
+	}
+}
+

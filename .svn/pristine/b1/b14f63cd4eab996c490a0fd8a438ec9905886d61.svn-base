@@ -1,0 +1,220 @@
+
+#ifdef WIN32
+#include <windows.h>
+#endif
+
+#include <iostream>
+#include <vector>
+
+#include "MatrixDefs.h"
+#include "Pi.h"
+
+#include "ManipManager.h"
+#include "API/RobotI.h"
+#include "PostureManager.h"
+#include "draw/DrawManager.h"
+#include "draw/DrawRobot.h"
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+#include "XBOXController\Controller.h"
+
+using namespace matrices;
+using namespace Eigen;
+using namespace std;
+using namespace manip_core;
+
+// main object
+
+ManipManager manager;
+DrawManager drawManager(manager);
+PostureManager* pManager = manager.GetPostureManager();
+static float xyz[3] = {-10.0,1,3.0};
+static float hpr[3] = {0.0,0.0,0.0};
+DrawRobot* dR;
+DrawRobot* dR2;
+RobotI* pRobot;
+xbox::Controller * controller = new xbox::Controller(1);
+
+void BuildWorld()
+{
+	// FORWARD OBSTACLES
+	Vector3 p1(-11,2,0.4f);
+	Vector3 p2( -4,2,0.4f);
+	Vector3 p3(-4,-1,0.4f);
+	Vector3 p4(-11,-1,0.4f);
+	manager.AddObstacle(p1,p2,p3,p4);
+
+	
+	p1 = Vector3(-6,2,2.f);
+	p2 = Vector3( -4,2,2.f);
+	p3 = Vector3( -4,-1,2.f);
+	p4 = Vector3(-6,-1,2.f);
+	manager.AddObstacle(p1,p2,p3,p4);
+
+	
+	manager.Initialize();
+}
+
+void HandleXbox()
+{
+	controller->Update();
+	float x, y;
+	controller->GetLeftStickMovingVector(x, y);
+	if( x!= 0)
+	{
+		matrices::Matrix4 nTransform;
+		double arra[16];
+		pRobot->ToWorldCoordinates(arra);
+		matrices::array16ToMatrix4(arra, nTransform);
+		nTransform.block(0,0,3,3) = nTransform.block(0,0,3,3) * matrices::Rotx4(x * 0.01) ;
+		matrices::matrixTo16Array(arra, nTransform);
+		RobotI* tmp = pRobot;
+		pRobot = pRobot->Copy(arra);
+		delete tmp;
+		delete dR;
+		dR = new DrawRobot(pRobot);
+	}
+}
+void HandleMove(const float& x,const  float& y, const float& z)
+{
+	matrices::Vector3 dir(x, y, z) ;
+	RobotI* tmp = pRobot;
+	pRobot = pManager->NextPosture(pRobot, dir);
+	delete dR;
+	//delete tmp;
+	dR = new DrawRobot(pRobot);
+}
+
+static void simLoop (int pause)
+{
+	//HandleXbox();
+	//HandleMove();
+	drawManager.Draw();
+	dR->Draw();
+	dR2->Draw();
+}
+
+void start()
+{
+    dsSetViewpoint (xyz,hpr);
+}
+
+void command(int cmd)   /**  key control function; */
+{
+	Vector3 trX(0.01, 0, 0);
+	Vector3 trY(0,0.01,  0);
+	switch (cmd)
+	{	
+		case '+' :
+			HandleMove(0.1, 0, 0);
+		break;
+		case '-' :
+			HandleMove(-0.1, 0, 0);
+		break;
+	}
+}
+
+
+int main(int argc, char *argv[])
+{
+	//init robot
+	Matrix4 robotBasis(matrices::Matrix4::Identity());
+	robotBasis(0,3) = -7;
+	robotBasis(2,3) = 1.8;
+
+	BuildWorld();
+
+	pRobot = manager.CreateRobot(enums::robot::Quadruped, robotBasis);
+	pManager->InitSamples(pRobot, 10000);
+	dR = new DrawRobot(pRobot);
+	/*
+	double dbl[16];
+	pRobot->ToRobotCoordinates(dbl);
+	Matrix4 mat;
+	matrices::array16ToMatrix4(dbl, mat);*/
+
+	//robotBasis.block(0,0,3,3) = robotBasis.block(0,0,3,3) * matrices::Rotx4(Pi/2) ;
+//	robotBasis.block(0,0,3,3) = robotBasis.block(0,0,3,3) * matrices::Rotx4(Pi/2) ;
+	//robotBasis = robotBasis * matrices::Rotx4(Pi/2) ;
+	const RobotI* pRobot2 = manager.CreateRobot(enums::robot::Quadruped, robotBasis);
+	dR2 = new DrawRobot(pRobot2);
+	/*PostureManager* postureManager = manager.GetPostureManager();
+
+	Vector3 robotBasis2(0,0,0);
+
+	robotBasis2(0) = -7;
+	postureManager->AddCheckPoint( 1.f, robotBasis2);
+
+	//robotBasis2(2) = 0.;
+	//robotBasis2(0) = -8;
+	//postureManager->AddCheckPoint( 2, robotBasis2);
+
+	//robotBasis2(0) = -7;
+	//robotBasis2(2) = 0.0;
+	//postureManager->AddCheckPoint( 3, robotBasis2);
+
+	//robotBasis2(0) = -5;
+	////robotBasis2(2) = 0.2;
+	//postureManager->AddCheckPoint( 4, robotBasis2);
+
+	//robotBasis2(0) = -2;
+	//robotBasis2(2) = 0.4;
+	//postureManager->AddCheckPoint( 5, robotBasis2);
+
+	//robotBasis2(0) = -1;
+	//robotBasis2(2) = 0.8;
+	//postureManager->AddCheckPoint( 6, robotBasis2);
+
+	//robotBasis2(0) = 1.3;
+	//robotBasis2(2) = 1.3;
+	//postureManager->AddCheckPoint( 7, robotBasis2);
+
+
+	//robotBasis2(0) = 6;
+	//robotBasis2(2) = 1.0;
+	//postureManager->AddCheckPoint( 8, robotBasis2);
+
+	//robotBasis2(0) = 12;
+	//robotBasis2(2) = 1.2;
+	//postureManager->AddCheckPoint( 9, robotBasis2);
+
+	robotBasis2(0) = -6;
+	postureManager->AddCheckPoint( 2, robotBasis2);
+
+	robotBasis2(0) = -5;
+	//robotBasis2(2) = +0.8;
+	postureManager->AddCheckPoint( 3, robotBasis2);
+
+	robotBasis2(0) = -3;
+	robotBasis2(2) = 0.3;
+	postureManager->AddCheckPoint( 4, robotBasis2);
+
+	robotBasis2(0) = -1;
+	robotBasis2(2) = 0.;
+	postureManager->AddCheckPoint( 5, robotBasis2);
+
+	
+	robotBasis2(0) = 4;
+	robotBasis2(2) = 0;
+	postureManager->AddCheckPoint( 6, robotBasis2);
+
+	postureManager->Compute(pRobot,1000);*/
+/*TEST */
+
+	/*
+	drawstuff stuff*/
+	dsFunctions fn;
+    fn.version = DS_VERSION;
+    fn.start   = &start;
+    fn.step    = &simLoop;
+	fn.command = &command;
+    fn.stop    = 0;
+    fn.path_to_textures = "../textures";
+    dsSimulationLoop (argc,argv,800,600,&fn);
+
+	delete dR;
+	delete dR2;
+	delete controller;
+    return 0;
+}

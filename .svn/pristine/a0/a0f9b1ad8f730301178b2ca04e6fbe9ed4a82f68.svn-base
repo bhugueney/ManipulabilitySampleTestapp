@@ -1,0 +1,30 @@
+
+#include "ForceManipulabilityConstraint.h"
+
+#include "Jacobian.h"
+
+using namespace matrices;
+using namespace Eigen;
+
+ForceManipulabilityConstraint::ForceManipulabilityConstraint()
+{
+	// NOTHING
+}
+
+ForceManipulabilityConstraint::~ForceManipulabilityConstraint()
+{
+	// NOTHING
+}
+
+float ForceManipulabilityConstraint::Evaluate(Jacobian& jacobianMinus, Jacobian& jacobianPlus, float epsilon, const Vector3& direction)
+{
+	return( ForceManipulability(jacobianPlus, direction) - ForceManipulability(jacobianPlus, direction) ) / ( epsilon * 2 );
+}
+
+float ForceManipulabilityConstraint::ForceManipulability(Jacobian& jacobian, const matrices::Vector3& direction)
+{
+	float r = ((direction).transpose()*jacobian.GetJacobianProduct()*(direction));
+	return 1/sqrt(r); 
+}
+
+

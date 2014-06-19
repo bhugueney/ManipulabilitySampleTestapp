@@ -1,0 +1,127 @@
+
+#include "DrawTree.h"
+#include "MatrixDefs.h"
+
+#include "API/RobotI.h"
+#include "API/TreeI.h"
+#include "API/JointI.h"
+
+#include <drawstuff/drawstuff.h> // The drawing library for ODE;
+
+using namespace matrices;
+using namespace manip_core;
+
+DrawTree::DrawTree(const TreeI* tree)
+	: tree_(tree)
+{
+	// NOTHING
+}
+
+DrawTree::~DrawTree()
+{
+	// NOTHING
+}
+
+void DrawTree::Draw(const matrices::Matrix4& currentTransform) const
+{
+	matrices::Matrix4 m = currentTransform;
+	dsSetColor(1.0,0.0,0.0);
+	const JointI* joint = this->tree_->GetRootJointI();
+	if(tree_->IsAnchored())
+	{
+		dsSetColor(0.0,1.0,0.0);
+	}
+	else
+	{
+		dsSetColor(1.0,0.0,0.0);
+	}
+	while(joint)
+	{
+		DrawJoint(m, joint);
+		joint = (joint->IsEffector() ? 0 : joint->GetSon());
+	}
+}
+
+
+//void DrawTree::Draw(const matrices::Matrix4& currentTransform) const
+//{
+//	matrices::Matrix4 m = currentTransform;
+//		
+//	if(tree_->IsLocked())
+//	{
+//		dsSetColor(0.0,1.0,0.0);
+//		// draw target
+//		float ps[3];
+//		float Identity [12] = { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f };
+//		vect3ToArray(ps, tree_->GetTarget());
+//		dsDrawSphere (ps, Identity, 0.05f);
+//	}
+//	else
+//	{
+//		dsSetColor(1.0,0.0,0.0);
+//	}
+//	Joint* joint = tree_->GetRoot();
+//	while (joint)
+//	{
+//		DrawJoint(m, joint);
+//		joint = (joint->IsEffector() ? 0 : tree_->GetSuccessor(joint));
+//	}
+//}
+
+using namespace enums;
+
+void DrawTree::DrawJoint(matrices::Matrix4& currentTransform, const JointI* joint) const
+{
+	//draw line between positions
+	float from[3];
+	vect4ToArray(from, currentTransform.col(3));
+	double vect[3];
+	joint->Offset(vect);
+	Vector3 offset;
+	matrices::arrayToVect3(vect,offset);
+	Matrix4 jointTransform = Translate(offset); // translation of current joint
+	switch(joint->GetRotation())
+	{
+		case rotation::X:
+			jointTransform = jointTransform + Rotx4(joint->GetAngle());
+			break;
+		case rotation::Y:
+			jointTransform = jointTransform + Roty4(joint->GetAngle());
+			break;
+		case rotation::Z:
+			jointTransform = jointTransform + Rotz4(joint->GetAngle());
+			break;
+	}
+	currentTransform = currentTransform * jointTransform;
+	float R[12];
+	matrixToArray(R, currentTransform);
+	float ps[3];
+
+
+	vect4ToArray(ps, currentTransform.col(3));
+	if(joint->GetSon())
+	{
+		dsDrawSphere (ps, R, 0.05f);
+	}
+	else
+	{
+		float sides[3] = {0.05f, 0.05f, 0.05f};
+		dsDrawBox(ps, R, sides);
+	}
+
+	//draw line between positions
+	if(joint->GetParent())
+		dsDrawLine(from, ps);
+
+	if(tree_->IsAnchored())
+	{
+		dsSetColor(0.0,1.0,0.0);
+		// draw target
+		double ps[3];
+		double Identity [12] = { 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f, 0.f, 0.f, 0.f, 1.f, 0.f };
+		tree_->GetTarget(ps);
+		dsDrawSphereD (ps, Identity, 0.2f);
+	}
+}
+
+

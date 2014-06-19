@@ -1,0 +1,14 @@
+﻿Build started 19/06/2014 1:31:09 PM.
+     1>Project "C:\Projects\mp2\manipulability_app\manipulability_core\manipulability_core.vcxproj" on node 2 (Build target(s)).
+     1>Link:
+         manipulability_core.vcxproj -> C:\Projects\mp2\manipulability_app\build\x64\Release\manipulability_core.dll
+       PostBuildEvent:
+         xcopy "C:\Projects\mp2\manipulability_app\build\x64\Release\manipulability_core.dll" "../run/vc100_64" /Y /I
+         :VCEnd
+         C:\Projects\mp2\manipulability_app\build\x64\Release\manipulability_core.dll
+         1 File(s) copied
+     1>Done Building Project "C:\Projects\mp2\manipulability_app\manipulability_core\manipulability_core.vcxproj" (Build target(s)).
+
+Build succeeded.
+
+Time Elapsed 00:00:00.74

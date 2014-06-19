@@ -1,0 +1,39 @@
+
+#ifndef _CLASS_SPLINETIMEMANAGER
+#define _CLASS_SPLINETIMEMANAGER
+
+#include "ExactCubic.h"
+#include "Timer.h"
+#include "MatrixDefs.h"
+
+namespace spline
+{
+
+class SplineTimeManager
+{
+public:
+	explicit SplineTimeManager(const Timer::t_time /*zeroTime*/, ExactCubic* /*cubic*/, float speed = 1.f);
+	~SplineTimeManager();
+
+private:
+	//SplineTimeManager(const SplineTimeManager&);
+	//SplineTimeManager& operator=(const SplineTimeManager&);
+
+public:
+	void Update(const Timer::t_time /*t*/, const Timer::t_time /*dt*/);
+	matrices::Vector3 GetTarget() const;
+
+public:
+	bool IsObsolete();
+	const ExactCubic& GetCubic() {return *cubic_;}
+
+private:
+	const Timer::t_time zeroTime_;
+	Timer::t_time currentTime_;
+	const float speed_;
+	ExactCubic* cubic_;
+	NUMBER distance_;
+};
+
+} // namespace spline
+#endif //_CLASS_SPLINETIMEMANAGER

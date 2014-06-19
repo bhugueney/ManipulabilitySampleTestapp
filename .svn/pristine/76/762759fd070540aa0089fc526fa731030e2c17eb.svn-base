@@ -1,0 +1,49 @@
+
+#ifndef _CLASS_IKSOLVER
+#define _CLASS_IKSOLVER
+
+#include "MatrixDefs.h"
+
+#include <memory>
+
+class Tree;
+class Jacobian;
+class PartialDerivativeConstraint;
+
+struct IKPImpl;
+
+class IKSolver {
+
+public:
+	 IKSolver( const float espilon = 0.01f, const float treshold = 0.03f );
+	~IKSolver();
+
+public:
+	//bool Step( Tree& /*tree*/, const matrices::Vector3& /*target*/ ) const; //true if target reached
+	bool StepClamping( Tree& /*tree*/, const matrices::Vector3& /*target*/, const matrices::Vector3& /*direction*/  ) const; //true if target reached
+	//bool StepForceManipulability( Tree& /*tree*/, const matrices::Vector3& /*target*/, const matrices::Vector3& /*direction*/ ) const; //true if target reached
+	//bool StepForceAndAvoidManipulability( Tree& /*tree*/, const matrices::Vector3& /*target*/, const matrices::Vector3& /*direction*/ ) const; //true if target reached
+	//void PartialForceManDerivatives(Tree& /*tree*/, const matrices::Vector3& /*direction*/, matrices::VectorX& /*velocities*/) const;
+	void PartialDerivatives(Tree& /*tree*/, const matrices::Vector3& /*direction*/, matrices::VectorX& /*velocities*/) const;
+
+public:
+	void Register( PartialDerivativeConstraint* constraint);
+
+private:
+	std::auto_ptr<IKPImpl> pImpl_;
+
+	void PartialDerivative (Tree& /*tree*/, const matrices::Vector3& /*direction*/, matrices::VectorX& /*velocities*/, const int /*joint*/) const;
+
+	//bool ComputeJointVelocityNoNullSpace( Tree& /*tree*/, const matrices::Vector3& /*target*/, matrices::VectorX& /*velocities*/ ) const; //true if target reached
+	//void UpdateTree( Tree& /*tree*/, const matrices::VectorX& /*velocities*/ ) const; //true if target reached
+	/*float PartialForceManDerivative(Tree& tree, int joint);
+	matrices::VectorX PartialForceManDerivatives(Tree& tree);*/
+
+	//void PartialForceManDerivative (Tree& /*tree*/, const matrices::Vector3& /*direction*/, matrices::VectorX& /*velocities*/, const int /*joint*/) const;
+	//void PartialAvoidSingularities( Tree& /*tree*/, const matrices::Vector3& /*target*/,    matrices::VectorX& /*velocities*/ ) const; //true if target reached
+	//void PartialForceManDerivatives(Tree& /*tree*/, const matrices::Vector3& /*direction*/, matrices::VectorX& /*velocities*/) const;
+	const float epsilon_;
+	const float treshold_;
+};
+
+#endif //_CLASS_IKSOLVER

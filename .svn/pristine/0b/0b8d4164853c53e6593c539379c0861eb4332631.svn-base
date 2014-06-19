@@ -1,0 +1,28 @@
+
+#ifndef _CLASS_DRAWROBOT
+#define _CLASS_DRAWROBOT
+
+#include "kinematic/RobotVisitor_ABC.h"
+
+#include <memory>
+
+struct PImpl;
+class Robot;
+class Joint;
+
+class DrawRobot : public RobotVisitor_ABC {
+
+public:
+	 DrawRobot(const Robot& robot);
+	~DrawRobot();
+
+	 void ToggleSupportPolygon(bool /*onoff*/);
+	 void Draw()const;
+	 virtual void Visit(const Tree& /*tree*/, const Joint* /*anchor*/);	
+	
+
+private:
+	std::auto_ptr<PImpl> pImpl_;
+}; // class DrawRobot
+
+#endif //_CLASS_DRAWROBOT

@@ -1,0 +1,34 @@
+#include "AutoRotate.h"
+#include "Simulation.h"
+
+using namespace matrices;
+
+AutoRotate::AutoRotate(const matrices::Vector3& angleSpeeds)
+	: angleSpeeds_(angleSpeeds)
+{
+	// NOTHING
+}
+
+AutoRotate::~AutoRotate()
+{
+	// NOTHING
+}
+
+void AutoRotate::Update(const Timer::t_time t, const Timer::t_time dt)
+{
+	Vector3 deltas = angleSpeeds_ * dt;
+	// for the time being only z
+	deltas(0) = 0;
+	deltas(1) = 0;
+	// insert actions
+	Simulation* sg = Simulation::GetInstance();
+	manip_core::RobotI* robot = sg->pRobot;
+	/*v0*/
+	robot->ComTarget(comDir_);
+	if(comDir_[1] != 0)
+	{
+		deltas(2) *= comDir_[1] / abs(comDir_[1]);
+		sg->motionHandler_.Rotate( matrices::Rotz3(deltas(2)));
+	}
+
+}

@@ -1,0 +1,27 @@
+
+#ifndef _CLASS_TIMER
+#define _CLASS_TIMER
+
+
+class Timer {
+
+public:
+	  Timer();
+	 ~Timer();
+
+public:
+	void           Start();
+	void           Stop();
+	void           Reset();
+	bool           IsRunning();
+	unsigned long  GetTime();
+	bool           IsOver(unsigned long seconds);
+
+private:
+	bool           resetted_;
+	bool           running_;
+	unsigned long  beg_;
+	unsigned long  end_;
+}; // Timer
+
+#endif //_CLASS_TIMER

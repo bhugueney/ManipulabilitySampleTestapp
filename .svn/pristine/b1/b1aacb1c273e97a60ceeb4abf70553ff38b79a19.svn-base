@@ -1,0 +1,54 @@
+
+#ifndef _CLASS_TREE
+#define _CLASS_TREE
+
+#include "Joint.h"
+
+class Tree {
+
+public:
+	Tree();
+
+	int GetNumJoint() const { return nJoint; }
+	int GetNumEffector() const { return nEffector; }
+	void InsertRoot(Joint*);
+	void InsertChild(Joint* parent, Joint* child);
+
+	// Accessors based on node numbers
+	Joint* GetJoint(int);
+	Joint* GetEffector(int);
+	const matrices::Vector3& GetEffectorPosition(int);
+
+	// Accessors for tree traversal
+	Joint* GetRoot() const { return root; }
+	Joint* GetSuccessor ( const Joint* ) const;
+	Joint* GetParent( const Joint* node ) const { return node->pRealparent_; }
+
+	void Compute();
+	void Init();
+
+private:
+	Joint* root;
+	int nJoint;			// nJoint = nEffector + nJoint
+	int nEffector;
+	void SetSeqNum(Joint*);
+	Joint* SearchJoint(Joint*, int);
+	Joint* SearchEffector(Joint*, int);
+	void ComputeTree(Joint*);
+	void InitTree(Joint*);
+};
+
+inline Joint* Tree::GetSuccessor ( const Joint* node ) const
+{
+	while ( true ) {
+		if ( node->pChild_ ) {
+			return node->pChild_;
+		}
+		node = node->pRealparent_;
+		if ( !node ) {
+			return 0;		// Back to root, finished traversal
+		} 
+	}
+}
+
+#endif //_CLASS_TREE

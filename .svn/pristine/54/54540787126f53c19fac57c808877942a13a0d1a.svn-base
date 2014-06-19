@@ -1,0 +1,70 @@
+
+#ifndef _CLASS_POSTURESOLVER
+#define _CLASS_POSTURESOLVER
+
+#include "API/PostureManagerI.h"
+
+#include "sampling/SampleGeneratorVisitor_ABC.h"
+#include "kinematic/Robot.h"
+#include "MatrixDefs.h"
+#include "Trajectory.h"
+
+#include <memory>
+#include <vector>
+
+class Sample;
+class SampleGenerator;
+class World;
+class Tree;
+class PostureCriteria_ABC;
+class SupportPolygon;
+
+struct PosturePImpl;
+
+/* parses sampled configurations in order to find an appropriate posture given a previous posture, 
+the current trajectory and the world*/
+
+class PostureSolver
+{
+public:
+	typedef std::vector<std::pair<NUMBER, Robot*>>	T_Robots;
+	typedef T_Robots::iterator						T_RobotsIT;
+	typedef T_Robots::const_iterator				T_RobotsCIT;
+
+public:
+	 PostureSolver(const World& /*world*/); // todo direciton / trajectory
+	~PostureSolver();
+
+public:
+	void   RegisterPostureListener(		 manip_core::PostureCreatedListenerI& /*listener*/);
+	bool UnregisterPostureListener(const manip_core::PostureCreatedListenerI& /*listener*/); // TODO
+
+	void AddToeOffCriteria(PostureCriteria_ABC* /*criteria*/);
+	void AddToeOnCriteria (PostureCriteria_ABC* /*criteria*/);
+
+public:
+	int				NextPosture(Robot& /*robot*/, const matrices::Vector3& /*direction*/,  bool handleLock = false);
+	const T_Robots& CreatePostures2(const Robot& /*previousTransform*/, Trajectory& /*trajectory*/, bool stopAtFirst = false);
+	const T_Robots& CreatePostures(const Robot& /*previousTransform*/, Trajectory& /*trajectory*/, bool stopAtFirst = false);
+	Robot*		    CreatePosture (const Robot& /*previousTransform*/, NUMBER time, const matrices::Matrix4& /*transform*/, Trajectory& /*trajectory*/, Trajectory::T_TimePositionsIT& /*position*/, bool& /*changed*/);
+	Robot*		    CreateStillPosture (const Robot& /*previousTransform*/, NUMBER time, const matrices::Matrix4& /*transform*/, const matrices::Matrix4& /*nextTransform*/);
+	Robot*		    CreateStillPosture2 (const Robot& /*previousTransform*/);
+	Tree*		    GetClosestToCom(const Robot& /*robot*/) const;
+
+private:
+	Robot* PostureSolver::UpdateTrees(Robot* /*res*/, Tree* /*actionTree*/, Robot::T_Tree& /*updateTrees*/, bool& /*changed*/);	
+	bool MustLift    (const Robot& /*robot*/, const Tree& /*tree*/) const;
+	bool BreakBalance(const Robot& /*robot*/, Tree& /*tree*/) const;
+	bool HasChanged  (const Robot& /*robot1*/, const Robot& /*robot2*/);
+
+	matrices::Vector3 HandleExitingCom(Robot& /*robot*/);
+	bool HandleExitingCom(Robot& /*robot*/, SupportPolygon& /*support*/, const matrices::Vector3& /*com*/);
+
+	bool LockTree		 (Robot& /*robot*/, Tree& /*tree*/) const;  // Gets sampled tree configuration that suits the best to constraints
+	bool HandleLockedTree(Robot& /*robot*/, Tree& /*tree*/);  // Gets sampled tree configuration that suits the best to constraints
+
+private:
+	std::auto_ptr<PosturePImpl> pImpl_;
+};
+
+#endif //_CLASS_POSTURESOLVER

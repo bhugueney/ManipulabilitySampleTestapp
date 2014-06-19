@@ -1,0 +1,53 @@
+<world>
+ <startpaused val="false"/>	
+  <robot type="9" samples="10000" x="1.7" y="-1.5" z="0.9" rotx="0" roty="0" rotz="0" iDirx="0" iDiry="0" iDirz="1" gait="false" jointlimit="false" autorotate="false" 
+  autorotateleg="false" jumptotarget="true" drawsplines="false" drawEllipseAxes="false" drawEllipsoid="false" drawnormals="false" reachcom="false" rotatewithspline="true" speed ="0.5" planif="false">
+  <tree id="0">
+		<joint id="0" angle="-100"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="90"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="1">
+		<joint id="0" angle="-90"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="45"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="2">
+		<joint id="0" angle="0"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="-45"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+	<tree id="3">
+		<joint id="0" angle="0"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="-45"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+  </robot>
+  <rootTrajectory>
+	<waypoint x="1.7" y="-1.5" z="0.9" t="0"/>
+	<waypoint x="1.72" y="-1.5" z="1.1" t="0"/>
+	<waypoint x="2.0" y="-1.5" z="1.5" t="0"/>
+	<waypoint x="2.2" y="-1.5" z="1.8" t="0"/>
+	<waypoint x="2.2" y="-1.5" z="2.1" t="0"/>
+  </rootTrajectory>
+  <camera x="5.2" y="-4.5" z="4" rotx="145" roty="-30" rotz="0" type="follow"/>
+  <light x="3" y="-5" shadows="false"/>
+  <obj name="../world/staircase.obj"/>
+  <obstacles>
+	<color> 
+		<p0 r="1" g="0.78" b="0.05" t ="1"/>
+	</color>
+  </obstacles>
+</world>

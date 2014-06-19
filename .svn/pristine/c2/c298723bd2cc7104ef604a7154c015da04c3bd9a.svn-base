@@ -1,0 +1,71 @@
+
+#ifndef _ENUMS
+#define _ENUMS
+
+#define stringify( name ) # name
+
+#include "API/WorldManagerI.h"
+
+namespace manip_core
+{
+namespace enums
+{
+	enum eMembers{ 
+		RightArm,
+		LeftArm,
+		LeftLeg,
+		RightLeg,
+		LeftLegWalk,
+		RightLegWalk,
+		HumanTorso,
+		QuadrupedTorso,
+		QuadrupedLeg,
+		QuadrupedLegLeft,
+		QuadrupedLegRight,
+		QuadrupedLegDownLeft,
+		QuadrupedLegDownRight,
+		SpiderTorso,
+		SpiderLeg,
+		UnknownTree
+	};
+		
+  const std::string myEnumTreesNames[] = 
+  {
+	  stringify( RightArm ),
+	  stringify( LeftArm ),
+	  stringify( LeftLeg ),
+	  stringify( RightLeg ),
+	  stringify( LeftLegWalk ),
+	  stringify( RightLegWalk ),
+	  stringify( HumanTorso ),
+	  stringify( QuadrupedTorso ),
+	  stringify( QuadrupedLeg ),
+	  stringify( QuadrupedLegLeft ),
+	  stringify( QuadrupedLegRight ),
+	  stringify( SpiderTorso ),
+	  stringify( SpiderLeg ),
+	  stringify( UnknownTree )
+  };
+
+  const std::string myEnumRobotNames[] = 
+  {
+	  stringify( robot::Human ),
+	  stringify( robot::HumanWalk ),
+	  stringify( robot::Quadruped ),
+	  stringify( robot::Spider ),
+	  stringify( robot::UnknownRobot )
+  };
+
+  static const std::string StringTreeType( const eMembers treeType )
+  {
+	return myEnumTreesNames[treeType];
+  }
+
+  static const std::string StringRobotType( const robot::eRobots robotType )
+  {
+	return myEnumRobotNames[robotType];
+  }
+} // namespace enums
+} // namespace manip_core
+
+#endif //_ENUMS

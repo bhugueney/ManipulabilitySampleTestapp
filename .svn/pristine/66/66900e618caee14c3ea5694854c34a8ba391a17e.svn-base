@@ -1,0 +1,96 @@
+#include "PostureManagerImpl.h"
+
+#include "posture/PostureCriteriaToeOffBoundary.h"
+#include "posture/PostureCriteriaToeOnCOM.h"
+#include "sampling/SampleGenerator.h"
+
+#include "API/RobotI.h"
+#include "kinematic/Robot.h"
+
+#include "MatrixDefs.h"
+
+using namespace manip_core;
+using namespace manip_core::enums;
+using namespace matrices;
+
+PostureManagerImpl::PostureManagerImpl(const World& world)
+	: pSolver_(world)
+	, initialized_(false)
+{
+	// NOTHING
+}
+
+PostureManagerImpl::~PostureManagerImpl()
+{
+	// NOTHING
+}
+
+void PostureManagerImpl::Release()
+{
+	delete this;
+}
+
+void PostureManagerImpl::AddTrajectoryPoint(const float time,const  double* transform)
+{
+	matrices::Vector3 transf;
+	matrices::arrayToVect3(transform, transf);
+	trajectory_.AddCheckPoint(time, transf);
+}
+
+void PostureManagerImpl::AddPostureCriteria(const enums::postureCriteria::ePostureCriteria criteria)
+{
+	switch(criteria)
+	{
+		case postureCriteria::toeOffBoundary:
+			{
+				pSolver_.AddToeOffCriteria(new PostureCriteriaToeOffBoundary());
+				break;
+			}
+		case postureCriteria::toeOnCOM:
+			{
+				pSolver_.AddToeOnCriteria(new PostureCriteriaToeOnCOM());
+				break;
+			}
+		default:
+			break;
+	}
+}
+
+void PostureManagerImpl::RegisterPostureCreatedListenerI(PostureCreatedListenerI* listener)	
+{
+	pSolver_.RegisterPostureListener(*listener);
+}
+
+void PostureManagerImpl::UnRegisterPostureCreatedListenerI(PostureCreatedListenerI* listener)
+{
+	pSolver_.UnregisterPostureListener(*listener);
+}
+
+void PostureManagerImpl::InitSamples(const RobotI* robot, int nbSamples)
+{
+	assert(robot);
+	Robot * rob = (static_cast<const Robot*>(robot))->Clone();
+	SampleGenerator* sg = SampleGenerator::GetInstance();
+	sg->GenerateSamples(*rob, nbSamples);
+	initialized_ = true;
+}
+
+void PostureManagerImpl::Compute(const RobotI* robot, int nbSamples)
+{
+	assert(robot);
+	Robot * rob = (static_cast<const Robot*>(robot))->Clone();
+	if(!initialized_)
+	{
+		InitSamples(rob, nbSamples);
+	}// TODO : this is just horrible. Remove sample generation
+	pSolver_.CreatePostures(*rob, trajectory_);
+}
+
+void PostureManagerImpl::NextPosture(RobotI* robot, double* direction)
+{
+	Vector3 dir;
+	matrices::arrayToVect3(direction, dir);
+	assert(initialized_);
+	Robot * rob = (static_cast<Robot*>(robot))->Clone();
+	pSolver_.NextPosture(*rob, dir);
+}

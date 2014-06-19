@@ -1,0 +1,9 @@
+#include "IkConstraintHandlerI.h"
+#include "IK/IkConstraintHandler.h"
+using namespace manip_core;
+
+extern "C" MANIPCORE_API IkConstraintHandlerI* GetIkConstraintHandlerI()
+{
+	IkConstraintHandlerI* constraintHandler = new IkConstraintHandler;
+	return constraintHandler;
+}

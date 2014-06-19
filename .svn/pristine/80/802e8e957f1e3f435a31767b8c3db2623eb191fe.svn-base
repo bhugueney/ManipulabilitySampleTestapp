@@ -1,0 +1,52 @@
+
+#ifndef _CLASS_CAMERA
+#define _CLASS_CAMERA
+
+#include "MatrixDefs.h"
+#include "drawstuff/drawstuff.h"
+
+#include "API/RobotI.h"
+
+struct Camera_ABC
+{
+public:
+	Camera_ABC(const matrices::Vector3& xyz, const matrices::Vector3& hpr)
+	{
+		matrices::vect3ToArray(xyz_, xyz);
+		matrices::vect3ToArray(xyzInit_, xyz);
+		matrices::vect3ToArray(hpr_, hpr);
+		matrices::vect3ToArray(hprInit_, hpr);
+	}
+
+	~Camera_ABC()
+	{
+		// NOTHING
+	}
+
+	virtual void OnCharacterMotion()
+	{	
+		// NOTHING
+	}
+
+	virtual void Update()
+	{	
+		//dsSetViewpoint(xyz_, hpr_);
+	}
+
+	virtual void Reset()
+	{	
+		for(int i =0; i <3; ++i)
+		{
+			xyz_[i] = xyzInit_[i];
+			hpr_[i] = hprInit_[i];
+		}
+		dsSetViewpoint(xyzInit_, hprInit_);
+	}
+
+	float xyz_[3];
+	float hpr_[3];
+	float xyzInit_[3];
+	float hprInit_[3];
+};
+
+#endif //_CLASS_CAMERA

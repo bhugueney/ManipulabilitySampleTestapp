@@ -1,0 +1,26 @@
+#include "API/CubicFunction.h"
+
+using namespace spline;
+
+CubicFunction::CubicFunction(const Vector3& a, const Vector3& b, const Vector3& c, const Vector3& d, const Real tBegin, const Real tEnd)
+	: a_(a), b_(b), c_(c), d_(d), tBegin_(tBegin), tEnd_(tEnd)
+{
+	// NOTHING
+}
+
+CubicFunction::~CubicFunction()
+{
+	// NOTHING
+}
+
+Vector3 CubicFunction::Evaluate(const Real t) const
+{
+	assert(tBegin_ <= t && t <= tEnd_); 
+	return a_ + b_ * (t - tBegin_) +  c_ * (t - tBegin_) * (t - tBegin_) + d_ * (t - tBegin_) * (t - tBegin_) * (t - tBegin_);
+}
+
+void CubicFunction::Evaluate(const Real t, Vector3& result) const
+{
+	assert(tBegin_ <= t && t <= tEnd_); 
+	result =  a_ + b_ * (t - tBegin_) +  c_ * (t - tBegin_) * (t - tBegin_) + d_ * (t - tBegin_) * (t - tBegin_) * (t - tBegin_);
+}

@@ -1,0 +1,277 @@
+
+#include "TreeFactory.h"
+#include "RobotFactory.h"
+#include "Robot.h"
+#include "kinematic/Tree.h"
+#include "kinematic/Enums.h"
+
+#include <vector>
+
+using namespace matrices;
+using namespace manip_core::enums;
+using namespace manip_core::enums::robot;
+
+namespace factories
+{
+const Vector3 unitx(1, 0, 0);
+const Vector3 unity(0, 1, 0);
+const Vector3 unitz(0, 0, 1);
+const Vector3 unit1(sqrt(14.0)/8.0, 1.0/8.0, 7.0/8.0);
+const Vector3 zero(0,0,0);
+
+struct RobotFactoryPimpl{
+	RobotFactoryPimpl()
+	{
+		// NOTHING
+	}
+	
+	~RobotFactoryPimpl()
+	{
+		// NOTHING
+	}
+
+	// TODO Joint that do not move
+
+	Robot* CreateHuman(const Matrix4& robotBasis) const
+	{
+		Robot* res = new Robot(robotBasis, treeFact_.CreateTree( HumanTorso, Vector3(0.0, 0., 0), 4), manip_core::enums::robot::Human);
+		Tree* rightLeg = treeFact_.CreateTree( RightLeg, Vector3(0.0, -0.2, 0.1), 0);
+		Tree* leftLeg  = treeFact_.CreateTree( LeftLeg, Vector3(0.0, 0.2 , 0.1), 1);
+		Tree* rightArm = treeFact_.CreateTree( RightArm, Vector3(0.0, -0.4, 1.3), 2);
+		Tree* leftArm  = treeFact_.CreateTree( LeftArm, Vector3(0.0, 0.4, 1.3), 3);
+		//rightArm->SetBoundaryRadius(rightArm->GetBoundaryRadius() * 8 / 10 );
+		//leftArm->SetBoundaryRadius(leftArm->GetBoundaryRadius() * 8 / 10 );
+		res->AddTree(rightLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(leftLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(rightArm, matrices::Vector3(0,0,1.2), 1);
+		res->AddTree(leftArm, matrices::Vector3(0,0,1.2), 1);
+		/*rightLeg->LockTarget(rightLeg->GetTarget());
+		leftLeg->LockTarget(leftLeg->GetTarget());*/
+
+	//rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3( -0.3, 0, -1.6)));
+		//leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.3, 0, -1.4)));
+
+		return res;
+	}
+
+	Robot* CreateHumanWalk(const Matrix4& robotBasis) const
+	{
+		Robot* res = new Robot(robotBasis, treeFact_.CreateTree( HumanTorso, Vector3(0.0, 0., 0), 4), manip_core::enums::robot::HumanWalk);
+		Tree* rightLeg = treeFact_.CreateTree( RightLegWalk, Vector3(0.0, -0.2, 0.1), 0);
+		Tree* leftLeg  = treeFact_.CreateTree( LeftLegWalk, Vector3(0.0, 0.2 , 0.1), 1);
+		Tree* rightArm = treeFact_.CreateTree( RightArm, Vector3(0.0, -0.4, 1.3), 2);
+		Tree* leftArm  = treeFact_.CreateTree( LeftArm, Vector3(0.0, 0.4, 1.3), 3);
+		res->AddTree(rightLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(leftLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(rightArm, matrices::Vector3(0,0,1.2), 1);
+		res->AddTree(leftArm, matrices::Vector3(0,0,1.2), 1);
+		/*rightLeg->LockTarget(rightLeg->GetTarget());
+		leftLeg->LockTarget(leftLeg->GetTarget());*/
+
+		rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3( -0.3, 0, -1.6)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.3, 0, -1.4)));
+
+		return res;
+	}
+
+	Robot* CreateHumanEllipse(const Matrix4& robotBasis) const
+	{
+		Robot* res = new Robot(robotBasis, treeFact_.CreateTree( HumanTorso, Vector3(0.0, 0., 0), 1), manip_core::enums::robot::HumanEllipse);
+		//Tree* rightLeg = treeFact_.CreateTree( RightLegWalk, Vector3(0.0, -0.2, 0.1), 0);
+		//Tree* leftLeg  = treeFact_.CreateTree( LeftLegWalk, Vector3(0.0, 0.2 , 0.1), 1);
+		Tree* rightArm = treeFact_.CreateTree( RightArmEllipse, Vector3(0.0, -0.4, 1.3), 0);
+		//Tree* leftArm  = treeFact_.CreateTree( LeftArm, Vector3(0.0, 0.4, 1.3), 3);
+		/*res->AddTree(rightLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(leftLeg, matrices::Vector3(0,0,0), 0);*/
+		res->AddTree(rightArm, matrices::Vector3(0,0,1.2), 0);
+		//res->AddTree(leftArm, matrices::Vector3(0,0,1.2), 1);
+		/*rightLeg->LockTarget(rightLeg->GetTarget());
+		leftLeg->LockTarget(leftLeg->GetTarget());*/
+
+		//rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3( -0.3, 0, -1.6)));
+		//leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.3, 0, -1.4)));
+
+		return res;
+	}
+	
+	Robot* CreateQuadruped(const Matrix4& robotBasis) const
+	{
+		// TODO Remove order neccessity to create ids ...
+		Robot* res = new Robot(robotBasis, treeFact_.CreateTree( QuadrupedTorso, Vector3(0.0, 0., 0.0), 4), manip_core::enums::robot::Quadruped);
+		factories::TreeFactory factory;
+		Tree* rightLeg = treeFact_.CreateTree( QuadrupedLegRight, Vector3(0.0, -0.25, -0.1), 0);
+		Tree* leftLeg  = treeFact_.CreateTree( QuadrupedLegLeft, Vector3(0.0, 0.25 , -0.1), 1);
+		Tree* leftArm  = treeFact_.CreateTree( QuadrupedLegLeft, Vector3(1.5, 0.25 , -0.1), 2);
+		Tree* rightArm = treeFact_.CreateTree( QuadrupedLegRight, Vector3(1.5, -0.25, -0.1), 3);
+		res->AddTree(rightLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(leftLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(leftArm, matrices::Vector3(1.5,0,0), 1);
+		res->AddTree(rightArm, matrices::Vector3(1.5,0,0), 1);
+		/*rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3(-0.3, 0, -1.3)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.5, 0, -1.3)));
+		rightArm->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightArm->GetPosition() + Vector3( 0.3, 0, -1.3)));*/
+
+		rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3( -0.3, 0, -1.4)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.3, 0, -1.4)));
+		rightArm->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightArm->GetPosition() + Vector3( 0.4, 0, -1.4)));
+		leftArm->LockTarget (matrix4TimesVect3(res->ToWorldCoordinates(), leftArm->GetPosition()  + Vector3( -0.4, 0, -1.4)));
+
+		return res;
+	}
+
+	Robot* CreateQuadrupedDown(const Matrix4& robotBasis) const
+	{
+		// TODO Remove order neccessity to create ids ...
+		Robot* res = new Robot(robotBasis, treeFact_.CreateTree( QuadrupedTorso, Vector3(0.0, 0., 0.0), 4), manip_core::enums::robot::Quadruped);
+		factories::TreeFactory factory;
+		Tree* rightLeg = treeFact_.CreateTree( QuadrupedLegDownRight, Vector3(0.0, -0.25, -0.1), 0);
+		Tree* leftLeg  = treeFact_.CreateTree( QuadrupedLegDownLeft, Vector3(0.0, 0.25 , -0.1), 1);
+		Tree* leftArm  = treeFact_.CreateTree( QuadrupedLegDownLeft, Vector3(1.5, 0.25 , -0.1), 2);
+		Tree* rightArm = treeFact_.CreateTree( QuadrupedLegDownRight, Vector3(1.5, -0.25, -0.1), 3);
+		res->AddTree(rightLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(leftLeg, matrices::Vector3(0,0,0), 0);
+		res->AddTree(leftArm, matrices::Vector3(1.5,0,0), 1);
+		res->AddTree(rightArm, matrices::Vector3(1.5,0,0), 1);
+		/*rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3(-0.3, 0, -1.3)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.5, 0, -1.3)));
+		rightArm->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightArm->GetPosition() + Vector3( 0.3, 0, -1.3)));*/
+
+		rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3( -0.3, 0, -1.4)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.3, 0, -1.4)));
+		rightArm->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightArm->GetPosition() + Vector3( 0.4, 0, -1.4)));
+		leftArm->LockTarget (matrix4TimesVect3(res->ToWorldCoordinates(), leftArm->GetPosition()  + Vector3( -0.4, 0, -1.4)));
+
+		return res;
+	}
+
+	
+	Robot* CreateSpider(const Matrix4& robotBasis) const
+	{
+		// TODO Remove order neccessity to create ids ...
+		Robot* res = new Robot(robotBasis, treeFact_.CreateTree( SpiderTorso, Vector3(0.0, 0., 0.0), 8), manip_core::enums::robot::Spider);
+		factories::TreeFactory factory;
+		Vector3 zeroAngle(0.25, 0, 0);
+		Tree* t1 = treeFact_.CreateTree( SpiderLeg, zeroAngle, 0);
+		Tree* t2  = treeFact_.CreateTree( SpiderLeg, zeroAngle, 1);
+		Tree* t3  = treeFact_.CreateTree( SpiderLeg, zeroAngle, 2);
+		Tree* t4 = treeFact_.CreateTree( SpiderLeg, zeroAngle, 3);
+		
+		Tree* t5 = treeFact_.CreateTree( SpiderLeg, zeroAngle, 4);
+		Tree* t6  = treeFact_.CreateTree( SpiderLeg, zeroAngle, 5);
+		Tree* t7  = treeFact_.CreateTree( SpiderLeg, zeroAngle, 6);
+		Tree* t8 = treeFact_.CreateTree( SpiderLeg, zeroAngle, 7);
+
+		matrices::Vector3 position(0,0,0);
+		res->AddTree(t1,position, 1);
+		res->AddTree(t2,position, 1);
+		res->AddTree(t3,position, 1);
+		res->AddTree(t4,position, 1);
+		res->AddTree(t5,position, 1);
+		res->AddTree(t6,position, 1);
+		res->AddTree(t7,position, 1);
+		res->AddTree(t8,position, 1);
+		/*rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3(-0.3, 0, -1.3)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.5, 0, -1.3)));
+		rightArm->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightArm->GetPosition() + Vector3( 0.3, 0, -1.3)));*/
+
+		/*rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3( -0.3, 0, -1.4)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.3, 0, -1.4)));
+		rightArm->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightArm->GetPosition() + Vector3( 0.4, 0, -1.4)));
+		leftArm->LockTarget (matrix4TimesVect3(res->ToWorldCoordinates(), leftArm->GetPosition()  + Vector3( -0.4, 0, -1.4)));*/
+
+		return res;
+	}
+
+	Robot* CreateSpiderRace(const Matrix4& robotBasis) const
+	{
+		// TODO Remove order neccessity to create ids ...
+		Robot* res = new Robot(robotBasis, treeFact_.CreateTree( SpiderTorsoRace, Vector3(0.0, 0., 0.0), 8), manip_core::enums::robot::SpiderRace);
+		factories::TreeFactory factory;
+		Vector3 zeroAngle(0.25, 0, 0);
+		Tree* t1 = treeFact_.CreateTree( SpiderLegRace, zeroAngle, 0);
+		Tree* t2  = treeFact_.CreateTree( SpiderLegRace, zeroAngle, 1);
+		Tree* t3  = treeFact_.CreateTree( SpiderLegRace, zeroAngle, 2);
+		Tree* t4 = treeFact_.CreateTree( SpiderLegRace, zeroAngle, 3);
+		
+		Tree* t5 = treeFact_.CreateTree( SpiderLegRace, zeroAngle, 4);
+		Tree* t6  = treeFact_.CreateTree( SpiderLegRace, zeroAngle, 5);
+		Tree* t7  = treeFact_.CreateTree( SpiderLegRace, zeroAngle, 6);
+		Tree* t8 = treeFact_.CreateTree( SpiderLegRace, zeroAngle, 7);
+
+		matrices::Vector3 position(0,0,0);
+		res->AddTree(t1,position, 1);
+		res->AddTree(t2,position, 1);
+		res->AddTree(t3,position, 1);
+		res->AddTree(t4,position, 1);
+		res->AddTree(t5,position, 1);
+		res->AddTree(t6,position, 1);
+		res->AddTree(t7,position, 1);
+		res->AddTree(t8,position, 1);
+		/*rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3(-0.3, 0, -1.3)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.5, 0, -1.3)));
+		rightArm->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightArm->GetPosition() + Vector3( 0.3, 0, -1.3)));*/
+
+		/*rightLeg->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightLeg->GetPosition() + Vector3( -0.3, 0, -1.4)));
+		leftLeg ->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), leftLeg->GetPosition()  + Vector3( 0.3, 0, -1.4)));
+		rightArm->LockTarget(matrix4TimesVect3(res->ToWorldCoordinates(), rightArm->GetPosition() + Vector3( 0.4, 0, -1.4)));
+		leftArm->LockTarget (matrix4TimesVect3(res->ToWorldCoordinates(), leftArm->GetPosition()  + Vector3( -0.4, 0, -1.4)));*/
+
+		return res;
+	}
+
+	TreeFactory treeFact_;
+};
+}
+
+using namespace factories;
+
+RobotFactory::RobotFactory()
+	: pImpl_(new RobotFactoryPimpl())
+{
+	// NOTHING
+}
+
+
+RobotFactory::~RobotFactory()
+{
+	// NOTHING
+}
+
+Robot* RobotFactory::CreateRobot(const eRobots robots, const Matrix4& robotBasis) const
+{
+	switch (robots)
+		{
+			case Human:
+				{
+					return pImpl_->CreateHuman(robotBasis);
+				}
+			case HumanWalk:
+				{
+					return pImpl_->CreateHumanWalk(robotBasis);
+				}
+			case HumanEllipse:
+				{
+					return pImpl_->CreateHumanEllipse(robotBasis);
+				}
+			case Quadruped:
+				{
+					return pImpl_->CreateQuadruped(robotBasis);
+				}
+			case QuadrupedDown:
+				{
+					return pImpl_->CreateQuadrupedDown(robotBasis);
+				}
+			case Spider:
+				{
+					return pImpl_->CreateSpider(robotBasis);
+				}
+			case SpiderRace:
+				{
+					return pImpl_->CreateSpiderRace(robotBasis);
+				}
+			default:
+				throw(std::exception("unknown robot type"));
+		}
+}
+
+

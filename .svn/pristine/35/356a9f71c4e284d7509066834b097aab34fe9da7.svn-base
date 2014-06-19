@@ -1,0 +1,29 @@
+
+#ifndef _CLASS_ROBOT_FACTORY
+#define _CLASS_ROBOT_FACTORY
+
+#include "MatrixDefs.h"
+#include "kinematic/Robot.h"
+#include "enums.h"
+
+
+namespace factories{
+
+struct RobotFactoryPimpl;
+
+class RobotFactory {
+public:
+	  RobotFactory();
+	 ~RobotFactory();
+
+public:
+	Robot* CreateRobot(const enums::eRobots /*robot*/, const matrices::Matrix4& /*robotBasis*/) const;
+
+private:
+	std::auto_ptr<RobotFactoryPimpl> pImpl_;
+	 
+}; // RobotFactory
+
+} // namespace factories
+
+#endif // _CLASS_ROBOT_FACTORY

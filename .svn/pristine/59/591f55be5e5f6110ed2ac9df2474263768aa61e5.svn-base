@@ -1,0 +1,53 @@
+#include "IKSolver.h"
+
+
+#include "API/IKSolverI.h"
+#include "API/TreeI.h"
+#include "API/RobotI.h"
+
+using namespace manip_core;
+
+
+IKSolver::IKSolver()
+	: solverI_(GetIKSolver())
+{
+	// NOTHING
+}
+
+IKSolver::~IKSolver()
+{
+	solverI_->Release();
+}
+
+bool IKSolver::QuickStepClamping(TreeI* pTree, const matrices::Vector3& target) const
+{
+	double targ[3];
+	matrices::vect3ToArray(targ, target);
+	return solverI_->QuickStepClamping(pTree, targ);
+}
+
+bool IKSolver::QuickStepClampingToTargets(RobotI* robot) const
+{
+	matrices::Matrix4 transform;
+	double transf[16];
+	robot->ToRobotCoordinates(transf);
+	matrices::array16ToMatrix4(transf, transform);
+
+	double tmp[3];
+	matrices::Vector3 roboTarget;
+
+	bool done = true;
+	for(unsigned int i=0; i< robot->GetNumTrees(); ++i)
+	{
+		TreeI* tree = robot->GetTreeI(i);
+		if(tree->IsAnchored())
+		{
+			tree->GetTarget(tmp);
+			matrices::arrayToVect3(tmp, roboTarget);
+			roboTarget = matrices::matrix4TimesVect3(transform, roboTarget);
+			done = QuickStepClamping(tree, roboTarget) && done;
+		}
+	}
+	return done;
+}
+

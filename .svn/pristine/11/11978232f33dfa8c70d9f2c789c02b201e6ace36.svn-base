@@ -1,0 +1,27 @@
+<world>
+  <robot type="0" samples="100000" x="0.7" y="0" z="1.7" rotx="0" roty="0" rotz="0" iDirx="0" iDiry="0" iDirz="1" 
+  autorotate="false" autorotateleg="false" jumptotarget="true" drawsplines="false" drawnormals="false" drawEllipseAxes="false" drawEllipsoid="false" reachcom="false" reachcomrotate="false" humanrotate="false"  rotatewithspline="true" rotatewithsplinedir="false" speed = "0.5">
+   <tree id="0" lock="true">
+		<joint id="0" angle="-35"/>
+		<joint id="1" angle="0"/>
+		<joint id="2" angle="0"/>
+		<joint id="3" angle="70"/>
+		<joint id="4" angle="0"/>
+		<joint id="5" angle="0"/>
+	</tree>
+  </robot>
+  
+  <camera x="2" y="-10" z="3" rotx="90" roty="-10" rotz="0" type="follow"/>
+  <background r="1" g="1" b="1" sky="false" ground="false"/>
+  <light x="1" y="-1" shadows="false"/>
+  <obj name="../world/pull.obj" ground="false"/>
+  
+  <obstacles offSet="false">
+	<obstacle> 
+		<p0 x="2.3" y="0.7" z="2"/>
+		<p1 x="2.3" y="-0.7" z="2"/>
+		<p2 x="2.0" y="-0.7" z="0"/>
+		<p3 x="2.0" y="0.7" z="0"/>
+	</obstacle>	
+  </obstacles>
+</world>

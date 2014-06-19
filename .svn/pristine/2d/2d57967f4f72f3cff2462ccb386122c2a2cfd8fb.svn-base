@@ -1,0 +1,26 @@
+<world>
+  <robot type="0" samples="0" x="1.5" y="-8" z="-0.1" rotx="0" roty="0" rotz="0" iDirx="0" iDiry="0" iDirz="1" 
+  autorotate="false" autorotateleg="false" jumptotarget="true" drawsplines="false" drawnormals="false" reachcom="false" reachcomrotate="false" humanrotate="false"  rotatewithspline="true" rotatewithsplinedir="false" speed = "0.5">
+  
+  </robot>
+  
+  <rootTrajectory>
+	<waypoint x="1.5" y="-8" z="-0.1" t="0"/>
+	<waypoint x="1.5" y="-8" z="0.4" t="0"/>
+	<waypoint x="2" y="-8" z="0.8" t="0"/>
+	<waypoint x="3.0" y="-8" z="1.6" t="0"/>
+	<waypoint x="3.3" y="-8" z="2.0" t="0"/>
+	<waypoint x="3.4" y="-8" z="2.2" t="0"/>
+  </rootTrajectory>
+  <camera x="-1" y="-2.5" z="4" rotx="-70" roty="-20" rotz="0"/>
+  <background r="1" g="1" b="1" sky="false" ground="false"/>
+  <obj name="../world/piscine.obj"/>
+  <obstacles offSet="false">
+	<color> 
+		<p0 r="0.42" g="0.91" b="1" t ="0.3"/>
+	</color>
+	<color>
+		<p0 r="0.8" g="0.8" b="1" t ="1"/>
+	</color>
+  </obstacles>
+</world>

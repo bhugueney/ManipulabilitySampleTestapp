@@ -1,0 +1,129 @@
+
+
+CreatePostures( robot, trajectory)
+
+	List<timeStep, Robot> postures
+	
+	Vector currentDir, oldPosition, oldDirection
+	Robot previousPosture <- robot
+	Matrix4x4 oldtranformation, transformation
+	
+	transformation  <- robot.transformation
+	previousPosture <- robot
+	oldDirection    <- robot.currentDirection
+	oldPosition     <- robot.position
+	int trajectoryIndex     <- -1
+	timestep <- 0
+	
+	while(trajectoryIndex < trajectory.size())
+	{
+		trajectoryIndex <- trajectoryIndex + 1		
+		currentDir     <- Trajectory[trajectoryIndex].position - oldPosition
+		
+		oldtransformation <- transformation
+		tranformation     <- ComputeTransformation(oldDirection, currentDir, Trajectory[trajectoryIndex].position)
+		
+		bool Success, Robot newPosture
+		Success, newPosture <- CreatePosture(previousPosture, Trajectory[trajectoryIndex], tranformation)
+		
+		if(Success)
+		{
+			oldPosition  <- Trajectory[trajectoryIndex].position
+			oldDirection <- currentDir
+			timestep <- Trajectory[trajectoryIndex].timestep
+			postures.Add(timestep, newPosture)
+			previousPosture = newPosture
+		}
+		// let's reduce gap between wayPoints by adding one between trajectories
+		else
+		{
+			if(Trajectory.AddWayPoint(previousPosture, trajectoryIndex))
+			{
+				trajectoryIndex <- trajectoryIndex - 1
+			}
+			else
+			{
+				//we're trapped. Do the best we can without moving
+				tranformation <- oldtransformation
+				timestep <- timestep + 0.001f
+				newPosture <- CreateStillPosture(previousPosture, timestep, tranformation);
+				postures.Add(timestep, newPosture)
+			    previousPosture = newPosture
+			}
+		}
+	}
+End
+
+CreatePosture(const Robot& robot, NUMBER time, const matrices::Matrix4& transform)
+{
+	Robot resPosture = robot.Clone()
+	resPosture.setTransform(transform)
+	
+	Tree actionTree <- 0
+	bool foundOneAction <- false
+	
+	List<Tree> updateTrees;
+	
+	bool robotStable = resPosture.Stable()
+	
+	for each Tree tree in resPosture 
+	do
+	{
+		if( tree.isDown() )
+		{
+			if( MustLift ( tree ))
+			{
+				if((!robotStable) || foundOneAction)
+				{
+					return 0;
+				}
+				actionTree = tree;
+				foundOneAction = true;
+			}			
+			// we won't lift this tree, so let's just anchor it to its previous prosition
+			else
+			{
+			 updateTrees.Insert(tree);
+			}	
+		}
+		// put foot down if balance is broken
+		else if(!robotStable)
+		{
+			// TODO what if several candidates? not possible
+			actionTree = tree;
+		}
+	}	
+	for(Robot::T_TreeCIT it = updateTrees.begin(); it != updateTrees.end(); ++it)
+	{
+		HandleLockedTree(*res, *(*it));
+	}
+	// just one or 0 changes to perform, sweet !
+	if(actionTree)
+	{
+		changed = true;
+		if(actionTree->IsLocked())
+		{
+			actionTree->UnLockTarget();
+		}
+		else
+		{
+			// try to drop leg
+			if(!LockTree(*res, *actionTree))
+			{
+				changed = false;
+				// if we can't ang not stable, go back
+				if(!robotStable)
+				{
+					return 0;
+				}
+			}
+		}
+	}
+	// in this case, all feet are down ( no action to do means no foot up)
+	else if(!robotStable)
+	{
+		// rollback to previous position and lift feet that will help us find equilibrium
+		resPosture.setTransform(robot.transform)
+		ComputeFeetTolift()->Lift()
+	}
+}

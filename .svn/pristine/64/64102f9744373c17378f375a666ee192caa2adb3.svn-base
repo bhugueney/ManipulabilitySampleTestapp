@@ -1,0 +1,150 @@
+
+#include "CollisionHandler.h"
+#include "kinematic/Tree.h"
+#include "Obstacle.h"
+
+#include <ozcollide\ozcollide.h>
+#include <ozcollide\aabbtree_poly.h>
+#include <ozcollide\aabbtreepoly_builder.h>
+#include <ozcollide\Vec3f.h>
+
+// Collision handler based on
+// ozCollide 1.1.1 library
+
+using namespace std;
+using namespace ozcollide;
+
+struct CollisionHandlerPImpl
+{
+	CollisionHandlerPImpl()
+		:instantiated_(false)
+	{
+		// TODO
+	}
+
+	~CollisionHandlerPImpl()
+	{
+		if(instantiated_) // free tris and vertices memory
+		{
+			verts.clear();
+			tris.clear();
+		}
+	}
+
+	void AddVertice(const matrices::Vector3& point)
+	{
+		verts.add(Vec3f((float)point(0),(float)point(1),(float)point(2)));
+	}
+
+	void BuildCollisionTree()
+	{
+		instantiated_ = true;
+		AABBTreePolyBuilder builder;
+		BaseTree = builder.buildFromPolys(tris.mem(),//polygons
+                                          tris.size(),//polygon count
+                                          verts.mem(),//vertices
+                                          verts.size());//vertices count
+	}
+
+	bool instantiated_;
+	AABBTreePoly *BaseTree;//this is the basic triangle BSP
+	Vector<Vec3f> verts, normals;
+	Vector<Polygon> tris;
+	AABBTreePoly::SegmentColResult result; // <-------THIS IS VERY IMPORTANT!!!!!!!
+};
+
+CollisionHandler::CollisionHandler()
+	: pImpl_(new CollisionHandlerPImpl())
+{
+	// NOTHING
+}
+
+CollisionHandler::~CollisionHandler()
+{
+	// NOTHING
+}
+
+void CollisionHandler::AddObstacle(const Obstacle* obstacle)
+{
+	assert(!(pImpl_->instantiated_));
+	ozcollide::Polygon *p = new ozcollide::Polygon();//we must build each face before add it to the list
+    int *indx = new int[4];
+	ozcollide::Vec3f tmpNormal((float)(obstacle->a_), (float)(obstacle->b_), (float)(obstacle->c_));
+
+	int nextIndice = pImpl_->verts.size();
+	// adding Vertices and associating polygon indices
+	pImpl_->AddVertice(obstacle->p1_);pImpl_->AddVertice(obstacle->p2_);pImpl_->AddVertice(obstacle->p3_);pImpl_->AddVertice(obstacle->p4_);
+	for(int i=0; i<4; ++i)
+	{
+		indx[i] = nextIndice++;
+	}
+    p->setIndicesMemory(4,&indx[0]);//setting up indices
+
+    p->setNormal(tmpNormal);//adding normals (previously readed)
+    pImpl_->tris.add(p[0]);//adding the polygon to the polygon list
+}
+
+void CollisionHandler::Instantiate()
+{
+	// TODO
+	pImpl_->BuildCollisionTree();
+}
+
+bool CollisionHandler::IsColliding(const Tree* tree)
+{
+	// TODO
+	assert(pImpl_->instantiated_);
+	Joint* j = tree->GetRoot();
+	assert(j);
+	matrices::Vector3 attach(j->GetR());
+	Vec3f location((float)attach(0), (float)attach(1), (float)attach(2));
+	bool collision = false;
+	while((j->pChild_ != 0) &! collision)
+	{
+		j = j->pChild_;
+		attach = j->GetR();
+		if(attach != matrices::zero)
+		{
+			Vec3f nLocation((float)attach(0), (float)attach(1), (float)attach(2));
+			nLocation += nLocation + location;
+			collision = pImpl_->BaseTree->isCollideWithSegment(location, nLocation);
+			location = nLocation;
+		}
+	}
+	return collision;
+}
+
+// TESTS
+
+//using namespace matrices;
+//#include "MatrixDefs.h"
+//#include "kinematic/TreeFactory.h"
+//
+//int main(int argc, char *argv[])
+//{
+//	Vector3 p1(-1,1,1.f);
+//	Vector3 p2(1,1,1.f);
+//	Vector3 p3(1,-1,1.f);
+//	Vector3 p4(-1,-1,1.f);
+//	Obstacle* obs = new Obstacle(p1,p2,p3,p4);
+//
+//	float pose = -4.f;
+//	float posey = 1.f;
+//	Vector3 p11(pose,posey+ 1,0.5f);
+//	Vector3 p12(pose+1,posey+ 1,0.5f);
+//	Vector3 p13(pose+1,posey,0.1f);
+//	Vector3 p14(pose,posey,0.1f);
+//
+//	Obstacle* obs1 = new Obstacle(p11,p12,p13,p14); 
+//
+//	CollisionHandler cHandler;
+//	cHandler.AddObstacle(obs);
+//	cHandler.AddObstacle(obs1);
+//	cHandler.Instantiate();
+//
+//	factories::TreeFactory factory;
+//	Tree * testTree = factory.CreateTree(enums::QuadrupedLegRight, Vector3(0.0, 0.0, 1.8), 0);
+//	//checking collision with first obstacle
+//	assert(cHandler.IsColliding(testTree));
+//	return 0;
+//}

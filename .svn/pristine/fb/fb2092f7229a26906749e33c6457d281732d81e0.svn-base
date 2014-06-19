@@ -1,0 +1,68 @@
+
+#ifndef _CLASS_JOINT
+#define _CLASS_JOINT
+
+#include "MatrixDefs.h"
+
+enum Purpose {JOINT, EFFECTOR};
+enum Rotation {X, Y, Z};
+
+class Joint {
+
+	friend class Tree;
+
+public:
+	Joint(const matrices::Vector3& /*attach*/, const matrices::Vector3& /*iRotAxis*/, Purpose /*purpose*/ , NUMBER restAngle=0., Rotation rot = Z);
+	Joint(const matrices::Vector3& /*attach*/, const matrices::Vector3& /*iRotAxis*/, Purpose /*purpose*/ , NUMBER minTheta, NUMBER maxTheta, NUMBER restAngle=0., Rotation rot = Z);
+
+	~Joint();
+
+	void InitJoint();
+
+	NUMBER GetTheta() const { return theta_; }
+	NUMBER AddToTheta( const NUMBER delta );
+
+	const matrices::Vector3& GetS() const { return s_; }
+	const matrices::Vector3& GetR() const { return r_; }
+	const matrices::Vector3& GetW() const { return w_; }
+	const Rotation GetRotation() const { return rot_; }
+
+	NUMBER GetMinTheta() const { return minTheta_; }
+	NUMBER GetMaxTheta() const { return maxTheta_; } 
+	NUMBER GetRestAngle() const { return restAngle_; } ;
+
+	void SetTheta(NUMBER newTheta) { theta_ = newTheta; }
+	void ComputeS(void);
+	void ComputeW(void);
+
+	int GetEffectorNum() const { return seqNumEffector_; }
+	int GetJointNum() const { return seqNumJoint_; }
+
+	bool IsEffector() const { return purpose_==EFFECTOR; } 
+	bool IsJoint() const { return purpose_==JOINT; }
+
+	void ToRest();
+
+	Joint* Clone() const;
+
+public:
+	Joint* pRealparent_;		// pointer to real parent
+	Joint* pChild_;				// pointer to child
+	
+private:
+	Purpose purpose_;			// joint / effector / both
+	Rotation rot_;				// joint / effector / both
+	int seqNumJoint_;			// sequence number if this node is a joint
+	int seqNumEffector_;		// sequence number if this node is an effector
+	matrices::Vector3 attach_;	// attachment point
+	matrices::Vector3 r_;		// relative position vector
+	const matrices::Vector3 v_;	// rotation axis
+	NUMBER theta_;				// joint angle (radian)
+	NUMBER minTheta_;			// lower limit of joint angle
+	NUMBER maxTheta_;			// upper limit of joint angle
+	NUMBER restAngle_;			// rest position angle
+	matrices::Vector3 s_;		// GLobal Position
+	matrices::Vector3 w_;		// Global rotation axis
+};
+
+#endif // _CLASS_JOINT

@@ -1,0 +1,91 @@
+
+#include "IkConstraintHandler.h"
+#include "PartialDerivativeConstraint.h"
+#include "ForceManipulabilityConstraint.h"
+
+#include <map>
+
+using namespace matrices;
+using namespace Eigen;
+using namespace manip_core::enums;
+
+struct ConstraintHandlerPimpl
+{
+	ConstraintHandlerPimpl()
+	{
+		//TODO
+	}
+
+	~ConstraintHandlerPimpl()
+	{
+		for(IkConstraintHandler::T_ConstraintIT it = constraints_.begin(); it!= constraints_.end(); ++it)
+		{
+			delete it->second;
+		}
+	}
+		
+	IkConstraintHandler::T_Constraint constraints_;
+};
+
+IkConstraintHandler::IkConstraintHandler()
+	:pImpl_(new ConstraintHandlerPimpl)
+{
+	// NOTHING
+}
+
+IkConstraintHandler::~IkConstraintHandler()
+{
+	// NOTHING
+}
+
+void IkConstraintHandler::Release()
+{
+	delete this;
+}
+
+bool IkConstraintHandler::AddConstraint   (const manip_core::enums::IKConstraints::eIKConstraints constraint)
+{
+	T_ConstraintIT it = pImpl_->constraints_.find(constraint);
+	if(it != pImpl_->constraints_.end())
+	{
+		return false;
+	}
+	else
+	{
+		switch(constraint)
+		{
+			case IKConstraints::ForceManip:
+			{
+				ForceManipulabilityConstraint* cons= new ForceManipulabilityConstraint;
+				pImpl_->constraints_.insert(std::make_pair(constraint, cons));
+				break;
+			}
+			default:
+			{
+				return false;
+			}
+			break;
+		}
+	}
+	return true;
+}
+
+bool IkConstraintHandler::RemoveConstraint(const manip_core::enums::IKConstraints::eIKConstraints constraint)
+{
+	T_ConstraintIT it = pImpl_->constraints_.find(constraint);
+	if(it == pImpl_->constraints_.end())
+	{
+		return false;
+	}
+	else
+	{
+		pImpl_->constraints_.erase(it);
+		return true;
+	}
+}
+
+const IkConstraintHandler::T_Constraint& IkConstraintHandler::GetConstraints() const
+{
+	return pImpl_->constraints_;
+}
+

@@ -1,0 +1,39 @@
+
+#ifndef _CLASS_POSTURESOLVER
+#define _CLASS_POSTURESOLVER
+
+#include "kinematic/SampleGeneratorVisitor_ABC.h"
+#include "MatrixDefs.h"
+
+#include <memory>
+
+class Sample;
+class SampleGenerator;
+class World;
+class Robot;
+class Tree;
+class Trajectory;
+
+struct PosturePImpl;
+
+/* parses sampled configurations in order to find an appropriate posture given a previous posture, 
+the current trajectory and the world*/
+
+class PostureSolver
+{
+
+public:
+	 PostureSolver(const World& /*world*/); // todo direciton / trajectory
+	~PostureSolver();
+
+public:
+	Robot* CreatePosture(const Robot& /*previousTransform*/, const SampleGenerator& /*sampleGenerator*/, const matrices::Matrix4& /*transform*/);
+
+private:
+	void MatchTree(Robot& /*robot*/, Tree& /*tree*/, const SampleGenerator& /*sampleGenerator*/);  // Gets sampled tree configuration that suits the best to constraints
+
+private:
+	std::auto_ptr<PosturePImpl> pImpl_;
+};
+
+#endif //_CLASS_POSTURESOLVER
