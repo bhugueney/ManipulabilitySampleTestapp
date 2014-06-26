@@ -10,8 +10,8 @@ using namespace manip_core;
 
 
 IKSolverApp::IKSolverApp(IkConstraintHandlerI* constraints)
-: solverI_(GetIKSolver())
-, constraints_(constraints)
+	: solverI_(GetIKSolver())
+	, constraints_(constraints)
 {
 	// NOTHING
 	//constraints_->AddConstraint(enums::IKConstraints::ForceManip);
@@ -45,10 +45,10 @@ bool IKSolverApp::StepClampingToTargets(RobotI* robot, const matrices::Vector3& 
 	matrices::Vector3 roboTarget;
 
 	bool done = true;
-	for (unsigned int i = 0; i< robot->GetNumTrees(); ++i)
+	for(unsigned int i=0; i< robot->GetNumTrees(); ++i)
 	{
 		TreeI* tree = robot->GetTreeI(i);
-		if (tree->IsAnchored())
+		if(tree->IsAnchored())
 		{
 			tree->GetTarget(tmp);
 			matrices::arrayToVect3(tmp, roboTarget);
@@ -59,7 +59,7 @@ bool IKSolverApp::StepClampingToTargets(RobotI* robot, const matrices::Vector3& 
 			tree->GetReferenceTarget(tmp);
 			matrices::arrayToVect3(tmp, roboTarget);
 		}
-		if (tree->IsAnchored())
+		if(tree->IsAnchored())
 		{
 			done = StepClamping(robot, tree, roboTarget, dir) && done;
 		}

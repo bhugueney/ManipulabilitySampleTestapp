@@ -99,7 +99,7 @@ TrajectoryHandler::~TrajectoryHandler()
 namespace
 {
 
-	typedef std::list<Vector3, Eigen::aligned_allocator<Vector3>>	T_Waypoint;
+    typedef std::list<Vector3, Eigen::aligned_allocator<Vector3> >	T_Waypoint;
 	typedef T_Waypoint::const_iterator								CIT_Waypoint;
 	typedef T_Waypoint::iterator									IT_Waypoint;
 
@@ -201,7 +201,7 @@ namespace
 		}
 	}
 
-	spline::curve_abc<>* MakeSpline(const spline::SplineOptimizer<NUMBER>& optimizer, T_Waypoint& waypoints)
+    spline::curve_abc<>* MakeSpline(T_Waypoint& waypoints)
 	{
 // CUBIC SPLINE
 		// timeline based on length(1)  
@@ -285,5 +285,5 @@ spline::curve_abc<>* TrajectoryHandler::ComputeTrajectory(const Robot& robot, co
 	//					matrices::matrix4TimesVect3(mat, (*it)->GetP4()));
 	//	ComputeCollisionFreePath(robot.ToWorldCoordinates(), current, estimated, waypoints, it1, it2, **it, obs, treePos);
 	//}
-	return MakeSpline(optimizer_, waypoints);
+    return MakeSpline(waypoints);
 }

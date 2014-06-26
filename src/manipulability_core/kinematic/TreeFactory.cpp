@@ -1298,7 +1298,7 @@ Tree* TreeFactory::CreateTree(const eMembers member, const Vector3& rootPosition
 					return pImpl_->CreateSpiderLegRace(rootPosition, id);
 				}
 			default:
-				throw(std::exception("unknown tree type"));
+                throw(std::exception());
 		}
 }
 

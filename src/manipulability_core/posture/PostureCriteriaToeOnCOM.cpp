@@ -3,7 +3,7 @@
 #include "kinematic/Tree.h"
 #include "kinematic/SupportPolygon.h"
 #include "kinematic/Robot.h"
-#include "matrixDefs.h"
+#include "MatrixDefs.h"
 
 using namespace matrices;
 

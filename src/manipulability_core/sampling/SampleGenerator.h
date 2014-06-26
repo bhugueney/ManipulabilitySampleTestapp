@@ -3,8 +3,11 @@
 #define _CLASS_SAMPLEGENERATOR
 
 #include <memory>
+#include <vector>
+#include "Triangle3Df.h"
 
-
+using namespace std;
+using namespace manip_core;
 class Sample;
 class Robot;
 class Tree;
@@ -35,7 +38,6 @@ private:
 	static SampleGenerator* instance;
 	
 	std::auto_ptr<PImpl> pImpl_;
-
 public:
 	static SampleGenerator* GetInstance()
 	{

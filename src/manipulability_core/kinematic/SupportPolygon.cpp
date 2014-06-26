@@ -55,7 +55,7 @@ struct SupportPolygonPImpl
 	}
 
 	// we're using VectorX; 4th value is TreeID !!
-	typedef std::vector<matrices::VectorX,Eigen::aligned_allocator<matrices::VectorX>> T_Point;
+    typedef std::vector<matrices::VectorX,Eigen::aligned_allocator<matrices::VectorX> > T_Point;
 	
 	// isLeft(): tests if a point is Left|On|Right of an infinite line.
 	//    Input:  three points P0, P1, and P2

@@ -385,7 +385,7 @@ Robot* RobotFactory::CreateRobot(const eRobots robots, const Matrix4& robotBasis
 					return pImpl_->CreateHumanCrouch180(robotBasis);
 				}
 			default:
-				throw(std::exception("unknown robot type"));
+                throw(std::exception());
 		}
 }
 /*
@@ -425,7 +425,7 @@ void GetTrees(const joint_def_t* root, std::list<const joint_def_t*>& trees)
 		}
 	}
 }
-*/
+
 #include "Pi.h"
 #include "kinematic/Com.h"
 #include "kinematic/Joint.h"
@@ -441,7 +441,7 @@ Joint* GetLast(Tree* tree)
 	}
 	return 0;
 }
-/*
+
 void ReadOneJointDef(matrices::Vector3 root, const joint_def_t* jointDef, Tree* tree, const ComFactory& comFact_)
 {
 	const Vector3 unitx(1, 0, 0);
@@ -496,4 +496,4 @@ Robot* RobotFactory::CreateRobot(const joint_def_t& joint, const Matrix4& robotB
 		res->AddTree( MakeTree((*it), id), offset, 0); // TODO find good column joint for rendering
 	}
 	return res;
-	}*/
+}*/

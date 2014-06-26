@@ -5,7 +5,7 @@
 #include "Exports.h"
 #include "kinematic/Joint.h"
 #include "MatrixDefs.h"
-#include "enums.h"
+#include "Enums.h"
 #include "API/TreeI.h"
 #include "world/Obstacle.h"
 
@@ -31,7 +31,7 @@ public:
 
 
 private:
-	Tree& Tree::operator =(const Tree&);
+    Tree& operator =(const Tree&);
 	Tree(const Tree&);
 
 // inheritedLockOnCurrent

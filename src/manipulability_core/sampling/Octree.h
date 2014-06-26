@@ -2,8 +2,12 @@
 #define _CLASS_OCTREE
 
 #include "MatrixDefs.h"
-#include "pcl\point_cloud.h"
-#include "pcl\octree\octree.h"
+
+#include <pcl/point_cloud.h>
+#include <pcl/octree/octree.h>
+#include <pcl/octree/octree_impl.h>
+
+#include "Triangle3Df.h"
 
 using namespace matrices;
 
@@ -18,14 +22,14 @@ namespace manip_core
 	public:
 		int insertToCloud(const Vector3 & /*point*/);
 		void init();
-
-		T_Id search(const Vector3 & /*obstacle*/, float /*radius*/);
+		
+		T_Id search(const Triangle3Df & /*obstacle*/, float /*radius*/);
 	private:
 		const float resolution = 128.0f;
 
 	private:
 		pcl::PointCloud <pcl::PointXYZ>::Ptr cloud;
-		pcl::octree::OctreePointCloudSearch<pcl::PointXYZ> octree;
+		pcl::octree::OctreePointCloud<pcl::PointXYZ> octree;
 	};
 }
 

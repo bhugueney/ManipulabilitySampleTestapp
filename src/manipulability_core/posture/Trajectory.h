@@ -3,7 +3,7 @@
 #define _CLASS_TRAJECTORY
 
 #include "MatrixDefs.h"
-#include <Memory.h>
+//#include <Memory.h>
 
 #include <list>
 
@@ -11,7 +11,7 @@ class Trajectory
 {
 public:
 	typedef std::pair  <float, matrices::Vector3>	P_TimePosition;
-	typedef std::list<P_TimePosition, Eigen::aligned_allocator<std::pair<const int, matrices::Matrix4>>> T_TimePositions;
+    typedef std::list<P_TimePosition, Eigen::aligned_allocator<std::pair<const int, matrices::Matrix4> > > T_TimePositions;
 	typedef T_TimePositions::iterator				T_TimePositionsIT;
 	typedef T_TimePositions::const_iterator			T_TimePositionsCIT;
 

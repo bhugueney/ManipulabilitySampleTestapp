@@ -5,8 +5,8 @@
 #include "world/Obstacle.h"
 #include "PostureCriteria_ABC.h"
 #include "world/Intersection.h"
-#include "FilterDistanceObstacle.h"
-#include "FilterDistance.h"
+#include "sampling/filters/FilterDistanceObstacle.h"
+#include "sampling/filters/FilterDistance.h"
 #include "sampling/SampleGenerator.h"
 #include "sampling/Sample.h"
 #include "kinematic/Tree.h"
@@ -23,6 +23,7 @@
 
 #ifdef PROFILE
 #include "TimerPerf.h"
+
 #endif
 
 using namespace matrices;

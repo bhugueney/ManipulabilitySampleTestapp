@@ -22,8 +22,7 @@ DrawTree::DrawTree(const TreeI* tree, const float width, const float effectorWid
 	: tree_(tree)
 	, hasAttach_(false)
 	, width_(width)
-	, effectorWidth_(effectorWidth)
-	, unitz_(0,0,1)
+    , effectorWidth_(effectorWidth)
 	, id_(id)
 {
 	// NOTHING
@@ -33,8 +32,7 @@ DrawTree::DrawTree(const TreeI* tree, const double* attach, const float width, c
 	: tree_(tree)
 	, hasAttach_(true)
 	, width_(width)
-	, effectorWidth_(effectorWidth)
-	, unitz_(0,0,1)
+    , effectorWidth_(effectorWidth)
 	, id_(id)
 {
 	const JointI* joint = this->tree_->GetRootJointI();
@@ -236,7 +234,7 @@ void DrawTree::DrawJoint(matrices::Matrix4& currentTransform, const JointI* join
 			Vector3 vNormal; matrices::arrayToVect3(normal, vNormal);
 			vNormal.normalize();
 			float R2[12];
-			matrices::Matrix3 rotation; matrices::GetRotationMatrix(unitz_, vNormal, rotation);
+            matrices::Matrix3 rotation; matrices::GetRotationMatrix(unitz, vNormal, rotation);
 			//matrices::matrix3ToArray(R2, rotation);
 			matrices::matrix3ToArray(R2, rotation);
 			float red, green, blue;
@@ -316,7 +314,7 @@ void DrawTree::DrawJoint(matrices::Matrix4& currentTransform, const JointI* join
 				Vector3 vNormal; matrices::arrayToVect3(normal, vNormal);
 				vNormal.normalize();
 				float R2[12];
-				matrices::Matrix3 rotation; matrices::GetRotationMatrix(unitz_, vNormal, rotation);
+                matrices::Matrix3 rotation; matrices::GetRotationMatrix(unitz, vNormal, rotation);
 				//matrices::matrix3ToArray(R2, rotation);
 				matrices::matrix3ToArray(R2, rotation);
 				dsDrawCylinder(ps, R2, 0.05,0.05);

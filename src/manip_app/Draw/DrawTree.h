@@ -30,11 +30,10 @@ private:
 	const manip_core::TreeI* tree_;
 	matrices::Vector3 attach_;
 	matrices::Vector3 rootPos_;
-	const matrices::Vector3 unitz_;
-	const bool hasAttach_;
-	const float width_;
-	const float effectorWidth_;
-	const int id_;
+    bool hasAttach_;
+    float width_;
+    float effectorWidth_;
+    int id_;
 }; // class DrawTree
 
 #endif //_CLASS_DRAWJOINT

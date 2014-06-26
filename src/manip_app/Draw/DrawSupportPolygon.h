@@ -12,7 +12,7 @@ class Robot;
 class DrawSupportPolygon : public  SupportPolygonVisitor_ABC 
 {
 public:
-	typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3>> T_Point;
+    typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3> > T_Point;
 	typedef T_Point::const_iterator T_PointIT;
 
 public:

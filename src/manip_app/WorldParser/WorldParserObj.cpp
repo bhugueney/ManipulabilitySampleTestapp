@@ -78,7 +78,7 @@ vector<string> splitSpace(const string& s)
 void WorldParserObj::CreateWorld(const std::string& filename, const bool isGround)
 {
 	string line;
-	ifstream myfile (filename);
+    ifstream myfile (filename.c_str());
 	std::vector<std::string> lines;
 	if (myfile.is_open())
 	{
@@ -127,7 +127,7 @@ void WorldParserObj::CreateWorld(const std::string& filename, const bool isGroun
 
 namespace
 {
-	typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3>> T_Point;
+    typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3> > T_Point;
 
 	NUMBER isLeft( const VectorX& P0, const VectorX& P1, const Vector3& P2 )
 	{

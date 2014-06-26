@@ -23,7 +23,7 @@ public:
 	~Joint();
 
 private:
-	Joint& Joint::operator =(const Joint&);
+    Joint& operator =(const Joint&);
 	Joint(const Joint&);
 
 // inherited

@@ -6,7 +6,7 @@ using namespace matrices;
 namespace
 {
 	
-	typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3>> T_Vector3;
+    typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3> > T_Vector3;
 	typedef T_Vector3::const_iterator CIT_Vector3;
 	//points in robot coordinates. return value -1, 1, 0 
 	Vector2 XYRotation(const T_Vector3& points)

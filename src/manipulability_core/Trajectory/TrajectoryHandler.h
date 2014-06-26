@@ -3,7 +3,6 @@
 #define _CLASS_TRAJECTORYHANDLER
 
 #include "spline/curve_abc.h"
-#include "OptimizeSpline.h"
 #include "MatrixDefs.h"
 
 #include "world/World.h"
@@ -29,8 +28,7 @@ public:
 	spline::curve_abc<>* ComputeTrajectory(const Robot& /*robot*/, const Tree& /*current*/, const Tree& /*estimated*/, const matrices::Vector3& /*target*/);
 	
 private:
-	const World& world_;
-	const spline::SplineOptimizer<NUMBER> optimizer_;
+    const World& world_;
 };
 
 

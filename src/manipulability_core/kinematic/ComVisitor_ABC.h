@@ -13,7 +13,7 @@ public:
 	virtual void VisitCom(const matrices::Vector3& /*position*/, const float& /*weight*/) = 0;
 
 private:
-	 ComVisitor_ABC& ComVisitor_ABC::operator =(const ComVisitor_ABC&);
+     ComVisitor_ABC& operator =(const ComVisitor_ABC&);
 	 ComVisitor_ABC(const ComVisitor_ABC&);
 }; // ComVisitor_ABC
 

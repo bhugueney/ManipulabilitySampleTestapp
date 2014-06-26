@@ -1,0 +1,18 @@
+﻿Build started 17/06/2014 11:05:03 AM.
+     1>Project "C:\Projects\manipulability_complete\manipulability\ode\bin\drawstuff.vcxproj" on node 2 (Build target(s)).
+     1>ClCompile:
+         C:\Program Files (x86)\Microsoft Visual Studio 12.0\VC\bin\CL.exe /c /IC:\Projects\manipulability_complete\manipulability\ode\include /IC:\Projects\manipulability_complete\manipulability\ode\include\ode\include /IC:\Projects\manipulability_complete\manipulability\ode\src\. /Zi /nologo /W3 /WX- /Od /Ob0 /Oy- /D WIN32 /D _WINDOWS /D _DEBUG /D "CMAKE_INTDIR=\"Debug\"" /D _MBCS /Gm- /EHsc /RTC1 /MDd /GS /fp:precise /Zc:wchar_t /Zc:forScope /GR /Fo"drawstuff.dir\Debug\\" /Fd"drawstuff.dir\Debug\vc120.pdb" /Gd /TP /analyze- /errorReport:prompt C:\Projects\manipulability_complete\manipulability\ode\src\x11.cpp C:\Projects\manipulability_complete\manipulability\ode\src\osx.cpp C:\Projects\manipulability_complete\manipulability\ode\src\drawstuff.cpp C:\Projects\manipulability_complete\manipulability\ode\src\windows.cpp
+         x11.cpp
+     1>C:\Projects\manipulability_complete\manipulability\ode\src\x11.cpp(26): fatal error C1083: Cannot open include file: 'config.h': No such file or directory
+         osx.cpp
+     1>C:\Projects\manipulability_complete\manipulability\ode\src\osx.cpp(30): fatal error C1083: Cannot open include file: 'config.h': No such file or directory
+         drawstuff.cpp
+     1>C:\Projects\manipulability_complete\manipulability\ode\include\ode\include\ode/common.h(111): fatal error C1189: #error :  You must #define dSINGLE or dDOUBLE
+         windows.cpp
+     1>C:\Projects\manipulability_complete\manipulability\ode\src\windows.cpp(29): fatal error C1083: Cannot open include file: 'config.h': No such file or directory
+         Generating Code...
+     1>Done Building Project "C:\Projects\manipulability_complete\manipulability\ode\bin\drawstuff.vcxproj" (Build target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:01.23

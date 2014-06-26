@@ -5,7 +5,6 @@
 #include "world/World.h"
 #include "MatrixDefs.h"
 
-#include "TextureHandler.h"
 
 #include <drawstuff/drawstuff.h> // The drawing library for ODE;
 
@@ -17,7 +16,7 @@ using namespace matrices;
 struct PImpl
 {
 	PImpl()
-		: textHandler_(std::string("../textures"))
+//		: textHandler_(std::string("../textures"))
 	{
 		//NOTHING
 	}
@@ -32,8 +31,7 @@ struct PImpl
 	typedef T_Obstacle::const_iterator T_ObstacleCIT;
 	T_Obstacle drawObstacles_;
 	T_Obstacle drawWalls_;
-	T_Obstacle drawGround_;
-	textures::TextureHandler textHandler_;
+    T_Obstacle drawGround_;
 };
 
 

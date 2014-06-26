@@ -83,7 +83,9 @@ void PostureManager::Update(const unsigned long time)
 #ifdef PROFILE
 void PostureManager::Log() const
 {
-	pPostureManager_->Log();
+	// DISABLED
+	//pPostureManager_->Log();
+
 }
 #endif
 

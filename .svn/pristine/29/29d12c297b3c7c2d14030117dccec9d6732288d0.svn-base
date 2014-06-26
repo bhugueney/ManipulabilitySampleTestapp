@@ -1,6 +1,0 @@
-<world>
-  <robot type="0" x="0" y="-1" z="1.7" rotx="0" roty="0" rotz="0"/>
-  <obj name="../world/chair.obj"/>
-  <obstacles>
-  </obstacles>
-</world>

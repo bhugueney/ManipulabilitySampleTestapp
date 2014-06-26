@@ -9,7 +9,7 @@
 class DrawSpline
 {
 public:
-	typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3>> T_Vector3;
+    typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3> > T_Vector3;
 	typedef T_Vector3::const_iterator CIT_Vector3;
 
 public:

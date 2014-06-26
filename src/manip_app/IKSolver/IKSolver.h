@@ -16,8 +16,8 @@ namespace manip_core
 class IKSolverApp {
 
 public:
-	IKSolverApp(manip_core::IkConstraintHandlerI* /*constraints*/);
-	~IKSolverApp();
+     IKSolverApp(manip_core::IkConstraintHandlerI* /*constraints*/);
+    ~IKSolverApp();
 
 public:
 	bool StepClamping(const manip_core::RobotI* /*robot*/, manip_core::TreeI* /*pTree*/, const matrices::Vector3& target, const matrices::Vector3& /*dir*/) const; //true if target reached // target in robot coordinates

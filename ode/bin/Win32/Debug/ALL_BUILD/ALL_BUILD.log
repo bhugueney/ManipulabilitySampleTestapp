@@ -1,0 +1,26 @@
+﻿Build started 17/06/2014 10:53:19 AM.
+     1>Project "C:\Projects\manipulability_complete\manipulability\ode\bin\ALL_BUILD.vcxproj" on node 2 (Rebuild target(s)).
+     1>CustomBuild:
+         Building Custom Rule C:/Projects/manipulability_complete/manipulability/ode/src/CMakeLists.txt
+         CMake is re-running because C:\Projects\manipulability_complete\manipulability\ode\bin\CMakeFiles\generate.stamp is out-of-date.
+           the file 'C:/Projects/manipulability_complete/manipulability/ode/src/CMakeLists.txt'
+           is newer than 'C:\Projects\manipulability_complete\manipulability\ode\bin\CMakeFiles\generate.stamp.depend'
+           result='-1'
+         CMake Error at CMakeLists.txt:14 (SET_TARGET_PROPERTIES):
+           set_target_properties Can not find target to add properties to:
+           manipulability_core
+         
+         
+         CMake Error at CMakeLists.txt:15 (SET_TARGET_PROPERTIES):
+           set_target_properties Can not find target to add properties to:
+           manipulability_core
+         
+         
+         -- Configuring incomplete, errors occurred!
+         See also "C:/Projects/manipulability_complete/manipulability/ode/bin/CMakeFiles/CMakeOutput.log".
+     1>C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\V120\Microsoft.CppCommon.targets(170,5): error MSB6006: "cmd.exe" exited with code 1.
+     1>Done Building Project "C:\Projects\manipulability_complete\manipulability\ode\bin\ALL_BUILD.vcxproj" (Rebuild target(s)) -- FAILED.
+
+Build FAILED.
+
+Time Elapsed 00:00:00.21

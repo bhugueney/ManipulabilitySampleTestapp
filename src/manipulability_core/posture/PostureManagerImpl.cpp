@@ -164,7 +164,7 @@ void PostureManagerImpl::InitSamples(const RobotI* robot, int nbSamples)
 }
 
 #include "world/ObstacleVisitor_ABC.h"
-#include "Filter_ABC.h"
+#include "sampling/filters/Filter_ABC.h"
 
 struct ReachableObstaclesContainer : public ObstacleVisitor_ABC
 {

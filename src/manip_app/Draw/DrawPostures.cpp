@@ -73,11 +73,13 @@ const manip_core::RobotI* DrawPostures::Next()
 	if(pImpl_->drawRobots_.empty())
 		return 0;
 	++(pImpl_->current_);
+	
 	if(pImpl_->current_ == pImpl_->drawRobots_.end())
 	{
 		--(pImpl_->current_);
 		return 0;
 	}
+	
 	return (*(pImpl_->current_))->GetRobot();
 }
 

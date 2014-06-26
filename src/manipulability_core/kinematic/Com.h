@@ -20,7 +20,7 @@ public:
 
 	
 private:
-	 Com& Com::operator =(const Com&);
+     Com& operator =(const Com&);
 }; // Com
 
 namespace factories
@@ -50,7 +50,7 @@ private:
 	std::auto_ptr<ComFactoryPimpl> pImpl_;
 
 private:
-	 ComFactory& ComFactory::operator =(const ComFactory&);
+     ComFactory& operator =(const ComFactory&);
 	 ComFactory(const ComFactory&);
 	 
 }; // ComFactory

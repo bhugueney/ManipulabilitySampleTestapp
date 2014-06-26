@@ -71,7 +71,7 @@ void CollisionHandlerDefault::Instantiate()
 
 namespace
 {
-	typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3>> T_Point;
+    typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3> > T_Point;
 	T_Point TreeToSegments(const Robot& robot, const Tree& tree)
 	{
 		matrices::Matrix4 mat(robot.ToWorldCoordinates());

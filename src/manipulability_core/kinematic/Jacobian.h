@@ -14,7 +14,7 @@ public:
 	~Jacobian();
 
 private:
-	Jacobian& Jacobian::operator =(const Jacobian&);
+    Jacobian& operator =(const Jacobian&);
 	Jacobian(const Jacobian&);
 
 public:

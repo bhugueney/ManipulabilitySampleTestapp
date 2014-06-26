@@ -1,4 +1,0 @@
-#include "MatrixDefs.h"
-#include "math.h"
-
-using namespace matrices;

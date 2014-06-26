@@ -52,6 +52,7 @@ public:
 	 WorldParser();
 	~WorldParser();
 
+	void InitWorld(const std::string& filename);
 	void CreateWorld(const std::string& filename);
 
 private:

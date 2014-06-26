@@ -13,8 +13,8 @@
 #ifdef WIN32
 #include <windows.h>
 #endif
-#include "MouseTrack.h"
-#include "MainTools.h"
+//#include "MouseTrack.h"
+//#include "MainTools.h"
 #include <drawstuff/drawstuff.h> // The drawing library for ODE;
 
 #include <vector>
@@ -103,7 +103,7 @@ const manip_core::RobotI* DrawRobot::GetRobot()
 namespace
 {
 	
-	static void setTransform (const float pos[3], const float R[12])
+    /*static void setTransform (const float pos[3], const float R[12])
 	{
 	  GLfloat matrix[16];
 	  matrix[0]=R[0];
@@ -124,11 +124,11 @@ namespace
 	  matrix[15]=1;
 	  glPushMatrix();
 	  glMultMatrixf (matrix);
-	}
+    }*/
 
 	void DrawEllipse(const RobotI* robot, int treeId)
-	{
-	//if(treeId != 2) return ;
+    {/*
+    //if(treeId != 2) return ;
 		double robotCoord[16];
 		Matrix4 currentTransform;
 		Vector3 pos, v1, v2, v3;
@@ -152,14 +152,7 @@ namespace
 			matrices::arrayToVect3(u2, v2); 
 			matrices::arrayToVect3(u3, v3);
 
-			//Getting svd
-			/*Matrix3d u = tree->svd_.matrixU();
-			VectorXd sing = tree->svd_.singularValues();
-			DrawEllipse( sing(0), sing(1), sing(2));*/
-			/*const Vector3 from( -1, 0, 2 );
-			/*DrawArrow( from, u.col(0) );
-			DrawArrow( from, u.col(1) );
-			DrawArrow( from, u.col(2) );*/
+            //Getting svd
 
 			float rx, ry, rz, xf, yf, zf;
 			rx = sig1;
@@ -205,8 +198,8 @@ namespace
 				}
 			}
 			glEnd();
-		}
-	}
+        }*/
+    }
 }
 
 void DrawRobot::DrawEllipsoid(int treeId) const

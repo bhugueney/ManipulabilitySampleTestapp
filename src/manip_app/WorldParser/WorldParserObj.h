@@ -20,7 +20,7 @@ private:
 	void CreateObstacle (const std::vector<std::string>& /*lines*/, const bool /*isGround*/);
 	
 private:
-	typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3>> T_Vector3;
+    typedef std::vector<matrices::Vector3,Eigen::aligned_allocator<matrices::Vector3> > T_Vector3;
 
 private:
 	manip_core::ManipManager& manager_;

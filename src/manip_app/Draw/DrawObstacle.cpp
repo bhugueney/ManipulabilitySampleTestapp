@@ -7,10 +7,7 @@
 #include <windows.h>
 #endif
 
-#include <GL/gl.h>
-#include <GL/glu.h>
-#include <GL/glut.h>
-#include <GL/glui.h>
+//#include <GL/glui.h>
 
 using namespace matrices;
 
@@ -78,7 +75,7 @@ void DrawObstacle::Init(const matrices::Vector3& p1, const matrices::Vector3& p2
 	matrices::matrixToArray(R_, basis_);
 
 	// sphere related stuff	
-	radius_ = std::min(w_, h_) / 2.f + 0.05;
+	radius_  = std::min(w_, h_) / 2.f + 0.05;
 	matrices::matrixID(ID_);
 
 	posSphere_[0] = center.x() + radius_;

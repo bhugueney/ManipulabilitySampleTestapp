@@ -28,7 +28,7 @@ the current trajectory and the world*/
 class PostureSolver
 {
 public:
-	typedef std::vector<std::pair<NUMBER, Robot*>>	T_Robots;
+    typedef std::vector<std::pair<NUMBER, Robot*> >	T_Robots;
 	typedef T_Robots::iterator						T_RobotsIT;
 	typedef T_Robots::const_iterator				T_RobotsCIT;
 
