@@ -3,6 +3,7 @@
 #define _CLASS_WORLDMANAGERI
 
 #include "Exports.h"
+#include "world\World.h"
 //#include "kinematics/joint.h"
 #include <vector>
 
@@ -61,6 +62,7 @@ struct MANIPCORE_API WorldManagerI
 	/**
 	*/
 	virtual PostureManagerI* GetPostureManager() = 0;
+	virtual World* GetWorld() = 0;
 	virtual IkConstraintHandlerI* GetIkConstraintHandlerI() = 0;
 };
 

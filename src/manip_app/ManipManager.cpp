@@ -1,7 +1,9 @@
 #include "ManipManager.h"
 #include "PostureManager.h"
 
+#include "world\ObstacleVisitor_ABC.h"
 #include "API/PostureManagerI.h"
+#include "posture\PostureManagerImpl.h"
 
 using namespace manip_core;
 using namespace matrices;
@@ -246,12 +248,12 @@ void ManipManager::GenerateStairChess(const matrices::Vector3& upLeft, const mat
 	}
 }
 
-void ManipManager::RegisterObstacleCreatedListenerI(ObstacleVisitor_ABC* listener)
+void ManipManager::RegisterObstacleCreatedListenerI(manip_core::ObstacleVisitor_ABC* listener)
 {
 	listeners_.push_back(listener);
 }
 
-void ManipManager::UnRegisterObstacleCreatedListenerI(ObstacleVisitor_ABC* /*listener*/)
+void ManipManager::UnRegisterObstacleCreatedListenerI(manip_core::ObstacleVisitor_ABC* /*listener*/)
 {
 	// TODO
 }
@@ -259,9 +261,10 @@ void ManipManager::UnRegisterObstacleCreatedListenerI(ObstacleVisitor_ABC* /*lis
 PostureManager* ManipManager::GetPostureManager()
 {
 	if(!pPostureManager_)
-	{
-		pPostureManager_ = new PostureManager(pWorldManager_->GetPostureManager());
-		pPostureManager_->AddPostureCriteria(enums::postureCriteria::toeOffBoundary);
+	{	
+		PostureManagerImpl * pimpl = new PostureManagerImpl(*pWorldManager_->GetWorld());
+		pPostureManager_ = new PostureManager(pimpl);
+		
 		//pPostureManager_->AddPostureCriteria(enums::postureCriteria::toeOffJointLimit);
 	}
 	return pPostureManager_;

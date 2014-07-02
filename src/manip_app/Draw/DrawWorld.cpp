@@ -50,25 +50,22 @@ DrawWorld::~DrawWorld()
 
 void DrawWorld::Draw() const
 {
-	//pImpl_->textHandler_.EnableTexture(textures::wood);
-
-	//dsSetTexture(0);
 	dsSetTexture(0);
-
-	for(PImpl::T_ObstacleCIT it = pImpl_->drawGround_.begin(); it!= pImpl_->drawGround_.end(); ++it)
-	{
-		it->Draw();
+	cout << pImpl_->drawGround_.size();
+	if (pImpl_->drawGround_.size() > 0){
+		for(PImpl::T_ObstacleCIT it = pImpl_->drawGround_.begin(); it!= pImpl_->drawGround_.end(); ++it)
+		{
+			it->Draw();
+		}
 	}
-	//dsSetTexture(0);
-	for(PImpl::T_ObstacleCIT it = pImpl_->drawWalls_.begin(); it!= pImpl_->drawWalls_.end(); ++it)
-	{
-		it->Draw();
+	
+	if (pImpl_->drawWalls_.size() > 0){
+		for (PImpl::T_ObstacleCIT it = pImpl_->drawWalls_.begin(); it != pImpl_->drawWalls_.end(); ++it)
+		{
+			it->Draw();
+		}
 	}
-	//pImpl_->textHandler_.DisableTextures();
-	//dsSetTexture(2);
-	//dsSetTexture(0);
-//	dsSetColorAlpha (0, 0, 1, 1);
-	//pImpl_->textHandler_.EnableTexture(textures::wood);
+	
 	for(PImpl::T_ObstacleCIT it = pImpl_->drawObstacles_.begin(); it!= pImpl_->drawObstacles_.end(); ++it)
 	{
 		it->Draw();

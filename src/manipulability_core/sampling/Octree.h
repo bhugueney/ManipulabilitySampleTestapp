@@ -8,6 +8,7 @@
 #include <pcl/octree/octree_impl.h>
 
 #include "Triangle3Df.h"
+#include "OctreeTriangleSearch.h"
 
 using namespace matrices;
 
@@ -25,11 +26,11 @@ namespace manip_core
 		
 		T_Id search(const Triangle3Df & /*obstacle*/, float /*radius*/);
 	private:
-		const float resolution = 128.0f;
+		const float resolution = 0.02f;
 
 	private:
 		pcl::PointCloud <pcl::PointXYZ>::Ptr cloud;
-		pcl::octree::OctreePointCloud<pcl::PointXYZ> octree;
+		pcl::octree::OctreeTriangleSearch<pcl::PointXYZ> octree;
 	};
 }
 

@@ -106,7 +106,7 @@ MotionHandler::MotionHandler(manip_core::ManipManager& manager, const float rota
 	, postureManager_(manager.GetPostureManager())
 	, previousDirection_(1,0,0)
 {
-	// NOTHING
+
 }
 
 MotionHandler::~MotionHandler()

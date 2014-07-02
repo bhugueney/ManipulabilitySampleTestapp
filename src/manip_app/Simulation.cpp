@@ -30,7 +30,8 @@ Simulation::~Simulation()
 	{
 		delete *it;
 	}
-	delete postureManager_;
+	
+	//delete postureManager_;
 }
 
 namespace simspace

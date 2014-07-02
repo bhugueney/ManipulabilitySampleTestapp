@@ -2,13 +2,16 @@
 #include "Distance\Wm5DistPoint3Triangle3.h"
 #include "Algebra\Wm5Vector3.h"
 #include "Objects3D\Wm5Triangle3.h"
-
+#include "OctreeCustomBFSIterator.h"
 #include "Wm5CoreLIB.h"
-#include <vector>
+#include <queue>
 
-#pragma comment(lib,"user32.lib") 
 using namespace manip_core;
 using namespace std;
+
+typedef pcl::octree::OctreeNode mNode;
+typedef pcl::octree::OctreeBranchNode<pcl::PointXYZ> mBranchNode;
+typedef pcl::octree::OctreeLeafNode<pcl::PointXYZ> mLeafNode;
 
 Octree::Octree()
 : octree(resolution)
@@ -30,17 +33,61 @@ int Octree::insertToCloud(const Vector3 &point){
 	return cloud->size();
 }
 
+#include<fstream>
+#include<string>
+using namespace std;
+
 void Octree::init(){
+	
+	
 	octree.setInputCloud(cloud);
 	octree.addPointsFromInputCloud();
 }
 
 T_Id Octree::search(const Triangle3Df & obstacle, float radius){
 	T_Id res;
-	
-	pcl::octree::OctreePointCloud<pcl::PointXYZ>::DepthFirstIterator tree_depth_it;
-	pcl::octree::OctreePointCloud<pcl::PointXYZ>::DepthFirstIterator  tree_depth_it_end = octree.depth_end();
 
+	pcl::octree::OctreeBreadthFirstIterator<pcl::octree::OctreePointCloud<pcl::PointXYZ>::OctreeT> b = octree.breadth_begin();
+	
+	pcl::octree::OctreeCustomBFSIterator<pcl::octree::OctreePointCloud<pcl::PointXYZ>::OctreeT, pcl::PointXYZ> it(b);
+	
+	vector<int> points;
+	octree.TriangleSearch(obstacle, points);
+
+	/*
+	queue <mNode *> nodeQueue;
+	mNode * startNode = octree.begin().getCurrentOctreeNode();
+
+	nodeQueue.push(startNode);
+
+	ofstream oFile("pcldw.txt");
+		
+	
+	while (!nodeQueue.empty()){
+		mNode * node = nodeQueue.front();
+		nodeQueue.pop();
+
+		if (node->getNodeType() == pcl::octree::BRANCH_NODE){
+			
+			mBranchNode * curNode = (mBranchNode *)node;
+			cout << curNode << endl;
+			
+			// calc bounds
+			curNode->
+			pcl::octree::OctreePointCloudVoxelCentroid<pcl::PointXYZ> oc (1);
+			
+			//cout << curNode->getContainer().x << ", " << curNode->getContainer().y << ", " << curNode->getContainer().z << endl;
+			for (int i = 0; i < 8; i++){
+				if (curNode->hasChild(i)){
+					nodeQueue.push((*curNode)[i]);
+				}
+			}
+		}
+	}
+	oFile.close();
+	*/
+
+	/*
 	for (tree_depth_it = octree.depth_begin(); tree_depth_it != tree_depth_it_end; ++tree_depth_it)
 	{
 		if (tree_depth_it.isLeafNode()){
@@ -61,8 +108,7 @@ T_Id Octree::search(const Triangle3Df & obstacle, float radius){
 					res.push_back(points[i]);
 				}
 			}
-		}
-		cout << res.size() << endl;
-	}	
+		}*/
+		//cout << res.size() << endl;	
 	return res;
 }

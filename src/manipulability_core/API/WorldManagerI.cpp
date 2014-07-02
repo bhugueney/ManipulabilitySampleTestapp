@@ -106,6 +106,11 @@ public:
 		return new PostureManagerImpl(world_);
 	}
 
+	virtual World* GetWorld()
+	{
+		return &world_;
+	}
+
 	virtual IkConstraintHandlerI* GetIkConstraintHandlerI()
 	{
 		IkConstraintHandlerI* constraintHandler = new IkConstraintHandler(world_);

@@ -10,8 +10,8 @@ using namespace matrices;
 
 PostureManager::PostureManager(PostureManagerI* pPostureManager)
 	: pPostureManager_(pPostureManager)
-{
-	// NOTHING
+{ 
+	
 }
 
 PostureManager::~PostureManager()
@@ -72,6 +72,7 @@ T_CubicTrajectory PostureManager::NextPosture(RobotI* robot, const matrices::Vec
 {
 	double dir [3];
 	matrices::vect3ToArray(dir, direction);
+
 	return pPostureManager_->NextPosture(robot, dir, Simulation::GetInstance()->simpParams_.closestDistance_);
 }
 

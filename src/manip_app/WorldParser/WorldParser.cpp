@@ -432,6 +432,7 @@ void WorldParser::CreateObstacle(const std::string& name, xml::xistream& xis) co
 		>> xml::end;
 		p3 = Vector3(x, y, z);
 
+		
 		manager_.AddGround(p0, p1, p2, p3);
 	}
 	if(name == "verticalchess")
