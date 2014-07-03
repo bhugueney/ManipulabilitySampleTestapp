@@ -4,7 +4,7 @@
 #include <pcl/common/common.h>
 #include "pcl\octree\octree_iterator.h"
 #include "Objects3D\Wm5Triangle3.h"
-
+#include "Wm5IntrTriangle3Box3.h"
 
 namespace pcl {
 	namespace octree{
@@ -29,7 +29,7 @@ namespace pcl {
 					OctreeKey& current_key = FIFO_entry.key_;
 					
 					OctreeNode * n = FIFO_entry.node_;
-					cout << n << endl;
+					
 					if ((this->max_octree_depth_ >= FIFO_entry.depth_) &&
 						(FIFO_entry.node_->getNodeType() == BRANCH_NODE))
 					{

@@ -41,7 +41,6 @@ namespace simspace
 		Simulation* sim = Simulation::GetInstance();
 		sim->simpParams_.GetCamera()->Reset();
 		sim->simpParams_.GetCamera()->Update();
-		std::cout << sim->simpParams_.background_ ;
 		dsSetBackGround(sim->simpParams_.background_(0), sim->simpParams_.background_(1), sim->simpParams_.background_(2));
 		dsSetDrawSky(sim->simpParams_.drawSky_);
 		dsSetDrawGround(sim->simpParams_.drawGround_);

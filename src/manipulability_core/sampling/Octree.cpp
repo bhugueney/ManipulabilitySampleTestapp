@@ -47,68 +47,36 @@ void Octree::init(){
 T_Id Octree::search(const Triangle3Df & obstacle, float radius){
 	T_Id res;
 
-	pcl::octree::OctreeBreadthFirstIterator<pcl::octree::OctreePointCloud<pcl::PointXYZ>::OctreeT> b = octree.breadth_begin();
-	
-	pcl::octree::OctreeCustomBFSIterator<pcl::octree::OctreePointCloud<pcl::PointXYZ>::OctreeT, pcl::PointXYZ> it(b);
-	
-	vector<int> points;
-	octree.TriangleSearch(obstacle, points);
+	octree.TriangleSearch(obstacle, res, radius);
+	mLeafNode node;
+	cout << "Mine Found size" << res.size() << endl;
 
-	/*
-	queue <mNode *> nodeQueue;
-	mNode * startNode = octree.begin().getCurrentOctreeNode();
+	//res.clear();
+	//pcl::octree::OctreeDepthFirstIterator<pcl::octree::OctreePointCloud<pcl::PointXYZ>::OctreeT> tree_depth_it;
 
-	nodeQueue.push(startNode);
+	//for (tree_depth_it = octree.depth_begin(); tree_depth_it != octree.depth_end(); ++tree_depth_it)
+	//{
+	//	if (tree_depth_it.isLeafNode()){
+	//		vector<int> points;
+	//		tree_depth_it.getLeafContainer().getPointIndices(points);
+	//		for (int i = 0; i < points.size(); i++){
+	//			pcl::PointXYZ pclPoint = cloud->at(points[i]);
 
-	ofstream oFile("pcldw.txt");
-		
-	
-	while (!nodeQueue.empty()){
-		mNode * node = nodeQueue.front();
-		nodeQueue.pop();
+	//			Wm5::Vector3<float> wmpoint(pclPoint.x, pclPoint.y, pclPoint.z);
+	//			Wm5::Triangle3<float> wmtriangle(*(new Wm5::Vector3<float>(obstacle.a_.x(), obstacle.a_.y(), obstacle.a_.z())),
+	//				*(new Wm5::Vector3<float>(obstacle.b_.x(), obstacle.b_.y(), obstacle.b_.z())),
+	//				*(new Wm5::Vector3<float>(obstacle.c_.x(), obstacle.c_.y(), obstacle.c_.z())));
 
-		if (node->getNodeType() == pcl::octree::BRANCH_NODE){
-			
-			mBranchNode * curNode = (mBranchNode *)node;
-			cout << curNode << endl;
-			
-			// calc bounds
-			curNode->
-			pcl::octree::OctreePointCloudVoxelCentroid<pcl::PointXYZ> oc (1);
-			
-			//cout << curNode->getContainer().x << ", " << curNode->getContainer().y << ", " << curNode->getContainer().z << endl;
-			for (int i = 0; i < 8; i++){
-				if (curNode->hasChild(i)){
-					nodeQueue.push((*curNode)[i]);
-				}
-			}
-		}
-	}
-	oFile.close();
-	*/
+	//			Wm5::DistPoint3Triangle3<float> distCalc(wmpoint, wmtriangle);
+	//			float dist = distCalc.Get();
 
-	/*
-	for (tree_depth_it = octree.depth_begin(); tree_depth_it != tree_depth_it_end; ++tree_depth_it)
-	{
-		if (tree_depth_it.isLeafNode()){
-			vector<int> points;
-			tree_depth_it.getLeafContainer().getPointIndices(points);
-			for (int i = 0; i < points.size(); i++){
-				pcl::PointXYZ pclPoint = cloud->at(points[i]);
-
-				Wm5::Vector3<float> wmpoint(pclPoint.x,pclPoint.y,pclPoint.z);
-				Wm5::Triangle3<float> wmtriangle(*(new Wm5::Vector3<float>(obstacle.a_.x(), obstacle.a_.y(), obstacle.a_.z())),
-					*(new Wm5::Vector3<float>(obstacle.b_.x(), obstacle.b_.y(), obstacle.b_.z())),
-					*(new Wm5::Vector3<float>(obstacle.c_.x(), obstacle.c_.y(), obstacle.c_.z())));
-				
-				Wm5::DistPoint3Triangle3<float> distCalc(wmpoint, wmtriangle);
-				float dist = distCalc.Get();
-				
-				if (dist < radius){
-					res.push_back(points[i]);
-				}
-			}
-		}*/
-		//cout << res.size() << endl;	
+	//			if (dist < radius){
+	//				res.push_back(points[i]);
+	//			}
+	//		}
+	//	}
+	//}
+	//	cout << "Naive Found size" << res.size() << endl;
+	//	res.clear();
 	return res;
 }

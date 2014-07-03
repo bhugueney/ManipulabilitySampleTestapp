@@ -51,7 +51,6 @@ DrawWorld::~DrawWorld()
 void DrawWorld::Draw() const
 {
 	dsSetTexture(0);
-	cout << pImpl_->drawGround_.size();
 	if (pImpl_->drawGround_.size() > 0){
 		for(PImpl::T_ObstacleCIT it = pImpl_->drawGround_.begin(); it!= pImpl_->drawGround_.end(); ++it)
 		{

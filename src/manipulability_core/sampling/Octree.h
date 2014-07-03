@@ -12,10 +12,10 @@
 
 using namespace matrices;
 
-typedef std::vector<size_t> T_Id;
-
 namespace manip_core
 {
+
+	typedef std::vector<size_t> T_Id;
 	class Octree {
 	public:
 		Octree();
@@ -26,7 +26,7 @@ namespace manip_core
 		
 		T_Id search(const Triangle3Df & /*obstacle*/, float /*radius*/);
 	private:
-		const float resolution = 0.02f;
+		const float resolution = 0.08f;
 
 	private:
 		pcl::PointCloud <pcl::PointXYZ>::Ptr cloud;
