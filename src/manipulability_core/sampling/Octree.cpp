@@ -24,12 +24,7 @@ Octree::~Octree(){
 }
 
 int Octree::insertToCloud(const Vector3 &point){
-	pcl::PointXYZ pointXYZ;
-	pointXYZ.x = point.x();
-	pointXYZ.y = point.y();
-	pointXYZ.z = point.z();
-	cloud->push_back(pointXYZ);
-
+	cloud->push_back(pcl::PointXYZ(point.x(), point.y(), point.z());
 	return cloud->size();
 }
 
